@@ -1,0 +1,57 @@
+version: '3.9'
+services:
+  python-runner:
+    build:
+      context: ./src/docker/python
+    image: python-runner
+
+  javascript-runner:
+    build:
+      context: ./src/docker/javascript
+    image: javascript-runner
+
+  c-runner:
+    build:
+      context: ./src/docker/c
+    image: c-runner
+
+  cpp-runner:
+    build:
+      context: ./src/docker/cpp
+    image: cpp-runner
+
+  java-runner:
+    build:
+      context: ./src/docker/java
+    image: java-runner
+
+  go-runner:
+    build:
+      context: ./src/docker/go
+    image: go-runner
+
+  php-runner:
+    build:
+      context: ./src/docker/php
+    image: php-runner
+
+  rust-runner:
+    build:
+      context: ./src/docker/rust
+    image: rust-runner
+
+  r-runner:
+    build:
+      context: ./src/docker/r
+    image: r-runner
+
+  elixir-runner:
+    build:
+      context: ./src/docker/elixir
+    image: elixir-runner
+
+  csharp-runner:
+    build:
+      context: ./src/docker/csharp
+    image: csharp-runner
+

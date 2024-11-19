@@ -1,0 +1,1126 @@
+{
+	"info": {
+		"_postman_id": "6488cc02-8d63-4353-b5ed-ff0c2ae08505",
+		"name": "CSC309-PP1",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "32160205"
+	},
+	"item": [
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "Signup",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "firstName",
+									"value": "test",
+									"type": "text"
+								},
+								{
+									"key": "lastName",
+									"value": "test",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "test@example.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "password",
+									"type": "text"
+								}
+							]
+						},
+						"url": "{{baseURL}}auth/signup"
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let response = pm.response.json();",
+									"pm.environment.set('accessToken', response['accessToken']);"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"content-type": true
+						}
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@admin.com\",\n  \"password\": \"admin\"\n}\n"
+						},
+						"url": "{{baseURL}}auth/login"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"auth": {
+							"type": "jwt",
+							"jwt": {
+								"algorithm": "HS256",
+								"isSecretBase64Encoded": false,
+								"payload": "{}",
+								"addTokenTo": "header",
+								"headerPrefix": "Bearer",
+								"queryParamKey": "token",
+								"header": "{}"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"url": "{{baseURL}}auth/logout"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Sort By Reports - Comments",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/comments/comments?sortBy=reports",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"comments",
+								"comments"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "postID",
+									"value": "2",
+									"disabled": true
+								},
+								{
+									"key": "sortBy",
+									"value": "reports"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Sort By Reports - Posts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}posts/posts?sortBy=reports",
+							"host": [
+								"{{baseURL}}posts"
+							],
+							"path": [
+								"posts"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"disabled": true
+								},
+								{
+									"key": "sortBy",
+									"value": "reports"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Hide Content - Post",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"itemType\": \"POST\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseURL}}/reports/1"
+					},
+					"response": []
+				},
+				{
+					"name": "Hide Content - Comment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"itemType\": \"COMMENT\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseURL}}/reports/2"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Reports - Posts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}posts/report?postId=2",
+							"host": [
+								"{{baseURL}}posts"
+							],
+							"path": [
+								"report"
+							],
+							"query": [
+								{
+									"key": "postId",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Reports - Comment",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseURL}}posts/report?commentId=1",
+							"host": [
+								"{{baseURL}}posts"
+							],
+							"path": [
+								"report"
+							],
+							"query": [
+								{
+									"key": "commentId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Blog Posts",
+			"item": [
+				{
+					"name": "Create Report on BlogPost",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"blogPostId\": 2,\n    \"reason\": \"Inappropriate content\",\n    \"itemType\": \"POST\"\n}"
+						},
+						"url": "{{baseURL}}posts/report"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Blog Post",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"New Blog Post Title\",\n    \"description\": \"This is a test description for a blog post.\",\n    \"content\": \"This is the main content of the blog post.\",\n    \"tags\": \"sample, blog, post\"\n}"
+						},
+						"url": "{{baseURL}}/posts/posts"
+					},
+					"response": []
+				},
+				{
+					"name": "Rate Post",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"vote\": \"-5\",\n    \"postID\": \"2\"\n}"
+						},
+						"url": "{{baseURL}}/posts/rate"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Blog Posts",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": "{{baseURL}}posts/posts"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single Post",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": "{{baseURL}}/posts/1"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Single Post",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Updated Title\",\n    \"description\": \"Updated Description\",\n    \"content\": \"Updated Content\",\n    \"tags\": \"updated,post\"\n}"
+						},
+						"url": "{{baseURL}}posts/1"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Single Post",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});",
+									"pm.test(\"Post is deleted\", function () {",
+									"    pm.expect(pm.response.text()).to.eql('');",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": "{{baseURL}}posts/1"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Comments",
+			"item": [
+				{
+					"name": "Create Comment on Blog Post",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"postID\": 2,\n    \"content\": \"This is a comment on the blog post.\"\n}"
+						},
+						"url": "{{baseURL}}/comments/comments"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Report on Comment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"commentId\": 2,\n    \"reason\": \"Spam\",\n    \"itemType\": \"COMMENT\"\n}"
+						},
+						"url": "{{baseURL}}/comments/report"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Comments on Blog Post",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/comments/comments?postID=2",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"comments",
+								"comments"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": null,
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": null,
+									"disabled": true
+								},
+								{
+									"key": "postID",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Rate Comment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"vote\": \"1\",\n    \"commentID\": \"1\"\n}"
+						},
+						"url": "{{baseURL}}/comments/rate"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Comment",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": "{{baseURL}}comments/2"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Code",
+			"item": [
+				{
+					"name": "Execute Python",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"for i in range(3): print(input())\",\n  \"language\": \"python\",\n  \"stdin\": \"hello\\nworld\\n!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseURL}}code/execute"
+					},
+					"response": []
+				},
+				{
+					"name": "Execute Javascript",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"const readline = require('readline');\\nconst rl = readline.createInterface({ input: process.stdin, output: process.stdout });\\nconst lines = [];\\nrl.on('line', (line) => { lines.push(line); }).on('close', () => { lines.forEach(line => console.log(line)); });\",\n  \"language\": \"javascript\",\n  \"stdin\": \"hello\\nworld\\n!\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseURL}}code/execute"
+					},
+					"response": []
+				},
+				{
+					"name": "Execute C",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"#include <stdio.h>\\nint main() {\\n  char input[100];\\n  for (int i = 0; i < 3; i++) {\\n    fgets(input, 100, stdin);\\n    printf(\\\"%s\\\", input);\\n  }\\n  return 0;\\n}\",\n  \"language\": \"c\",\n  \"stdin\": \"hello\\nworld\\n!\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseURL}}code/execute"
+					},
+					"response": []
+				},
+				{
+					"name": "Execute C++",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"code\": \"#include <iostream>\\n#include <string>\\nint main() {\\n  std::string input;\\n  for (int i = 0; i < 3; i++) {\\n    std::getline(std::cin, input);\\n    std::cout << input << std::endl;\\n  }\\n  return 0;\\n}\",\n  \"language\": \"cpp\",\n  \"stdin\": \"hello\\nworld\\n!\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseURL}}code/execute"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Templates",
+			"item": [
+				{
+					"name": "Create Template",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"C Template 5\",\n  \"description\": \"This is a sample template.\",\n  \"code\": \"print('hello world');\",\n  \"language\": \"C\",\n  \"tags\": \"sample, hello world\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseURL}}templates"
+					},
+					"response": []
+				},
+				{
+					"name": "Edit Template",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.request.headers.add({ key: \"Authorization\", value: `Bearer ${pm.environment.get(\"token\")}` });"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"For Loops in C\",\n  \"description\": \"This template covers for loops in C\",\n  \"code\": \"for (int i = 0; i < 5; i++) {\\n print(hello)\\n }\",\n  \"language\": \"C\",\n  \"tags\": \"for loops\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseURL}}templates/2"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Template",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.request.headers.add({ key: \"Authorization\", value: `Bearer ${pm.environment.get(\"token\")}` });"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"For Loops in C\",\n  \"description\": \"This template covers for loops in C\",\n  \"code\": \"for (int i = 0; i < 5; i++) {\\n print(hello)\\n }\",\n  \"language\": \"C\",\n  \"tags\": \"for loops\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseURL}}templates/1"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Templates",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}templates",
+							"host": [
+								"{{baseURL}}templates"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "2",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": null,
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Templates With Filters",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/templates",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"templates"
+							],
+							"query": [
+								{
+									"key": "tags",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "content",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "title",
+									"value": "c",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": null,
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "5",
+									"disabled": true
+								},
+								{
+									"key": "ownedByUser",
+									"value": "true",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Fork (No Changes)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"1\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseURL}}templates/fork"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Fork - Changes",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{accessToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": 2,\n  \"title\": \"Custom Forked Title\",\n  \"description\": \"A customized description for the forked template.\",\n  \"tags\": \"custom,template,fork\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseURL}}templates/fork"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Fork - Not Authorized",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const email = pm.environment.get(\"email\")",
+									"const password = pm.environment.get(\"password\")",
+									"pm.sendRequest({",
+									"    url: \"http://localhost:3000/api/auth/login\",",
+									"    method: \"POST\",",
+									"    header: {",
+									"        \"Content-Type\": \"application/json\"",
+									"    },",
+									"    body: {",
+									"        mode: \"raw\",",
+									"        raw: JSON.stringify({",
+									"            email: email,",
+									"            password: password,",
+									"        })",
+									"    }",
+									"}, function (err, res) {",
+									"    if (err) {",
+									"        console.error(\"Login failed:\", err);",
+									"    } else {",
+									"        let token = res.json()['accessToken'];",
+									"        pm.environment.set('accessToken', token);",
+									"",
+									"        console.log(\"Login successful, token set for future requests\");",
+									"    }",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.sendRequest({",
+									"    url: \"http://localhost:3000/api/auth/logout\",",
+									"    method: \"POST\",",
+									"    header: {",
+									"        \"Content-Type\": \"application/json\"",
+									"    }",
+									"}, function (err, res) {",
+									"    if (err) {",
+									"        console.error(\"Logout failed:\", err);",
+									"    } else {",
+									"        console.log(\"Logout successful\");",
+									"        pm.environment.unset(\"accessToken\");",
+									"    }",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": 2,\n  \"title\": \"Custom Forked Title\",\n  \"description\": \"A customized description for the forked template.\",\n  \"tags\": \"custom,template,fork\"\n}\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseURL}}templates/fork"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							}
+						],
+						"url": "{{baseURL}}user/profile"
+					},
+					"response": []
+				},
+				{
+					"name": "Edit Profile",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{accessToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "multipart/form-data",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "firstName",
+									"value": "Updated Test",
+									"type": "text"
+								},
+								{
+									"key": "lastName",
+									"value": "Updated Lastname",
+									"type": "text"
+								},
+								{
+									"key": "profileImage",
+									"type": "file",
+									"src": "/home/damianmelia/Downloads/small-profile.jpeg"
+								}
+							]
+						},
+						"url": "{{baseURL}}user/profile"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "token",
+			"value": "",
+			"type": "default"
+		}
+	]
+}
