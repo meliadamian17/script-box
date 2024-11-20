@@ -46,13 +46,17 @@ echo "Verifying Docker installation..."
 sudo docker --version
 sudo docker compose version
 
-# Start Docker daemon
-echo "Starting Docker daemon..."
-sudo systemctl start docker
+# Start Docker daemon manually for non-systemd systems
+echo "Starting Docker daemon manually..."
+sudo dockerd &  # Start the Docker daemon in the background
 
 # Ensure the user has permissions to use Docker
 echo "Adding current user to the Docker group..."
 sudo usermod -aG docker $USER
+
+# Wait for Docker to be ready
+echo "Waiting for Docker to be ready..."
+sleep 10
 
 echo "Building Docker images for code execution..."
 sudo docker compose build  # Use sudo to ensure permissions are not an issue
