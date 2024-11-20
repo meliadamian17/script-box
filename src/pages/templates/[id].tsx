@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import CodeEditor from "../../components/CodeEditor";
-import { SupportedLanguages } from "./types";
+import { SupportedLanguages } from "@/utils/templates/types";
 import { helloWorldCodes } from "../../components/CodeEditor";
 
 const TemplateEditorPage = () => {

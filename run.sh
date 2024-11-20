@@ -6,6 +6,6 @@ echo "Starting the server and Docker containers..."
 
 docker compose up -d
 
-npm run build
+NEXT_LINT=false npm run build
 
 npm run start

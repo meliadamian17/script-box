@@ -22,7 +22,7 @@ import {
   materialLight,
   material,
 } from "@uiw/codemirror-themes-all";
-import { SupportedLanguages } from "@/pages/templates/types";
+import { SupportedLanguages } from "@/utils/templates/types";
 
 interface CodeEditorProps {
   language: SupportedLanguages;
