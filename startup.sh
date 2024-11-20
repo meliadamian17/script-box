@@ -10,7 +10,10 @@ npm install --force
 echo "Running database migrations..."
 npx prisma migrate dev --name init
 
-echo "Checking for required compilers/interpreters..."
+echo "Installing Docker"
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# echo "Checking for required compilers/interpreters..."
 
 # check_command() {
 #     if ! command -v "$1" &> /dev/null; then
