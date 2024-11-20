@@ -46,12 +46,16 @@ echo "Verifying Docker installation..."
 sudo docker --version
 sudo docker compose version
 
+# Start Docker daemon
+echo "Starting Docker daemon..."
+sudo systemctl start docker
+
 # Ensure the user has permissions to use Docker
 echo "Adding current user to the Docker group..."
 sudo usermod -aG docker $USER
 
 echo "Building Docker images for code execution..."
-docker compose build
+sudo docker compose build  # Use sudo to ensure permissions are not an issue
 
 echo "Creating an admin user..."
 node src/utils/createAdminUser.mjs
