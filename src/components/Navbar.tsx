@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { CodeBracketIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
@@ -7,6 +7,8 @@ import Link from "next/link";
 const Navbar = () => {
   const { user, logout } = useAuth();
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchProfileImage = async () => {
@@ -26,6 +28,19 @@ const Navbar = () => {
     fetchProfileImage();
   }, [user]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   return (
     <div className="navbar bg-base-100 shadow-lg">
       <div className="flex-1">
@@ -44,10 +59,13 @@ const Navbar = () => {
         </div>
       </div>
       <div className="flex-none">
-        <div className="dropdown dropdown-end">
+        <div ref={dropdownRef} className="dropdown dropdown-end">
           {user ? (
             <>
-              <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
+              <button
+                onClick={() => setDropdownOpen((prev) => !prev)}
+                className="btn btn-ghost btn-circle avatar"
+              >
                 <div className="w-10 rounded-full">
                   <Image
                     src={profileImage || "/placeholder.jpg"}
@@ -57,39 +75,50 @@ const Navbar = () => {
                     className="rounded-full"
                   />
                 </div>
-              </label>
-              <ul
-                tabIndex={0}
-                className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
-              >
-                <li>
-                  <Link href="/account" className="justify-between">
-                    Profile
-                  </Link>
-                </li>
-                <li>
-                  <button onClick={() => logout()} className="justify-between">
-                    Logout
-                  </button>
-                </li>
-              </ul>
+              </button>
+              {dropdownOpen && (
+                <ul className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
+                  <li>
+                    <Link href="/account" className="justify-between" onClick={() => setDropdownOpen(false)}>
+                      Profile
+                    </Link>
+                  </li>
+                  <li>
+                    <button
+                      onClick={() => {
+                        logout();
+                        setDropdownOpen(false);
+                      }}
+                      className="justify-between"
+                    >
+                      Logout
+                    </button>
+                  </li>
+                </ul>
+              )}
             </>
           ) : (
             <>
-              <label tabIndex={0} className="btn btn-ghost btn-circle">
-                <CodeBracketIcon className="w-6 h-6" />
-              </label>
-              <ul
-                tabIndex={0}
-                className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
+              <button
+                onClick={() => setDropdownOpen((prev) => !prev)}
+                className="btn btn-ghost btn-circle"
               >
-                <li>
-                  <Link href="/login">Login</Link>
-                </li>
-                <li>
-                  <Link href="/signup">Signup</Link>
-                </li>
-              </ul>
+                <CodeBracketIcon className="w-6 h-6" />
+              </button>
+              {dropdownOpen && (
+                <ul className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
+                  <li>
+                    <Link href="/login" onClick={() => setDropdownOpen(false)}>
+                      Login
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/signup" onClick={() => setDropdownOpen(false)}>
+                      Signup
+                    </Link>
+                  </li>
+                </ul>
+              )}
             </>
           )}
         </div>

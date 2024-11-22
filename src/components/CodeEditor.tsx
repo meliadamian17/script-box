@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { python } from "@codemirror/lang-python";
 import { javascript } from "@codemirror/lang-javascript";
@@ -8,21 +8,13 @@ import { go } from "@codemirror/lang-go";
 import { php } from "@codemirror/lang-php";
 import { rust } from "@codemirror/lang-rust";
 import { r } from "codemirror-lang-r";
-import { elixir } from "codemirror-lang-elixir";
 import { csharp } from "@replit/codemirror-lang-csharp";
+import { elixir } from "codemirror-lang-elixir"
 import { vim } from "@replit/codemirror-vim";
 import { lineNumbersRelative } from "@uiw/codemirror-extensions-line-numbers-relative";
-import {
-  dracula,
-  githubLight,
-  sublime,
-  monokaiDimmed,
-  monokai,
-  materialDark,
-  materialLight,
-  material,
-} from "@uiw/codemirror-themes-all";
-import { SupportedLanguages } from "@/utils/templates/types";
+import { dracula, githubLight, sublime, monokai, monokaiDimmed } from "@uiw/codemirror-themes-all";
+import { SupportedLanguages } from "@/utils/templates/types"
+
 
 interface CodeEditorProps {
   language: SupportedLanguages;
@@ -43,7 +35,7 @@ export const helloWorldCodes: Record<SupportedLanguages, string> = {
   php: '<?php\necho "Hello, World!";\n',
   rust: 'fn main() {\n    println!("Hello, World!");\n}',
   r: 'print("Hello, World!")',
-  elixir: 'IO.puts("Hello, World!")',
+  elixir: 'IO.puts("Hello World!)',
   csharp: 'using System;\nclass Program {\n    static void Main() {\n        Console.WriteLine("Hello, World!");\n    }\n}',
 };
 
@@ -63,9 +55,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
   const handleCodeChange = (value: string) => {
     setCode(value);
-    if (onCodeChange) {
-      onCodeChange(value);
-    }
+    if (onCodeChange) onCodeChange(value);
   };
 
   const languageExtensions: Record<SupportedLanguages, any> = {
@@ -78,19 +68,16 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     php: php(),
     rust: rust(),
     r: r(),
-    elixir: elixir(),
     csharp: csharp(),
+    elixir: elixir(),
   };
 
   const themeExtensions = {
     light: githubLight,
     dark: dracula,
     sublime: sublime,
-    monokaiDimmed: monokaiDimmed,
     monokai: monokai,
-    materialDark: materialDark,
-    materialLight: materialLight,
-    material: material,
+    monokaiDimmed: monokaiDimmed,
   };
 
   const extensions = [
@@ -104,8 +91,11 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
       value={code}
       extensions={extensions}
       theme={themeExtensions[theme]}
-      height="500px"
-      width="800px"
+      minWidth="100%"
+      minHeight="500px"
+      style={{
+        borderRadius: "0.5rem",
+      }}
       onChange={handleCodeChange}
     />
   );
