@@ -24,6 +24,7 @@ const handler = async (req, res) => {
       }
 
       if (template.userId !== userId) {
+        console.log(template.userId, userId);
         return res
           .status(403)
           .json({ error: "Access denied to this template." });

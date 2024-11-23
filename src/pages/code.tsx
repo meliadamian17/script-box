@@ -1,57 +1,108 @@
-// pages/code.tsx
-import React, { useState } from "react";
-import CodeEditor from "../components/CodeEditor";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+import CodeEditor, { helloWorldCodes } from "../components/CodeEditor";
+import { SupportedLanguages } from "@/utils/templates/types";
 
 const CodeEditorPage = () => {
-  const [language, setLanguage] = useState("python");
+  const router = useRouter();
+  const { title, description, language: queryLanguage, code, tags } = router.query;
+
+  const [language, setLanguage] = useState<SupportedLanguages>(
+    (queryLanguage as SupportedLanguages) || "python"
+  );
   const [theme, setTheme] = useState("dark");
   const [enableVim, setEnableVim] = useState(false);
   const [relativeLineNumbers, setRelativeLineNumbers] = useState(false);
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
-  const [code, setCode] = useState("# Write your code here!");
+  const [codeHistory, setCodeHistory] = useState<Record<SupportedLanguages, string>>(
+    Object.fromEntries(
+      Object.keys(helloWorldCodes).map((lang) => [lang, helloWorldCodes[lang]])
+    ) as Record<SupportedLanguages, string>
+  );
+  const [isRunning, setIsRunning] = useState(false);
 
-  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setLanguage(e.target.value);
-  };
+  // Initialize code from query parameter
+  useEffect(() => {
+    if (queryLanguage && code) {
+      const lang = queryLanguage as SupportedLanguages;
+      setLanguage(lang);
+      setCodeHistory((prev) => ({
+        ...prev,
+        [lang]: code as string,
+      }));
+    }
+  }, [queryLanguage, code]);
 
-  const handleThemeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setTheme(e.target.value);
-  };
-
-  const handleRunCode = async () => {
+  const runCode = async () => {
+    setIsRunning(true);
     try {
       const response = await fetch("/api/code/execute", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, language, stdin: input }),
+        body: JSON.stringify({
+          code: codeHistory[language],
+          language,
+          stdin: input,
+        }),
       });
       const result = await response.json();
       setOutput(result.output || result.error || "No output");
     } catch (err) {
       setOutput("Error: Unable to run code");
+    } finally {
+      setIsRunning(false);
     }
   };
 
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLanguage = e.target.value as SupportedLanguages;
+    setLanguage(newLanguage);
+
+    if (!codeHistory[newLanguage]) {
+      setCodeHistory((prev) => ({
+        ...prev,
+        [newLanguage]: helloWorldCodes[newLanguage],
+      }));
+    }
+  };
+
+  const handleCodeChange = (code: string) => {
+    setCodeHistory((prev) => ({ ...prev, [language]: code }));
+  };
+
   return (
-    <div className="flex flex-col items-center p-6 space-y-4">
-      {/* Language and Theme Selection */}
-      <div className="flex items-center space-x-4">
+    <div className="p-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">{title || "Code Editor"}</h1>
+        {description && <p className="text-lg mt-2">{description}</p>}
+        {tags && (
+          <p className="text-sm mt-1 text-gray-500">
+            Tags: {tags.toString().split(",").join(", ")}
+          </p>
+        )}
+      </div>
+
+      {/* Editor Options */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center space-y-4 lg:space-y-0 lg:space-x-4 mb-6">
         <select
           className="select select-bordered"
           value={language}
           onChange={handleLanguageChange}
+          disabled={isRunning}
         >
-          <option value="javascript">JavaScript</option>
-          <option value="python">Python</option>
-          <option value="cpp">C++</option>
-          <option value="java">Java</option>
+          {Object.keys(helloWorldCodes).map((lang) => (
+            <option key={lang} value={lang}>
+              {lang}
+            </option>
+          ))}
         </select>
 
         <select
           className="select select-bordered"
           value={theme}
-          onChange={handleThemeChange}
+          onChange={(e) => setTheme(e.target.value)}
+          disabled={isRunning}
         >
           <option value="light">Light</option>
           <option value="dark">Dark</option>
@@ -62,10 +113,7 @@ const CodeEditorPage = () => {
           <option value="materialLight">Material Light</option>
           <option value="material">Material</option>
         </select>
-      </div>
 
-      {/* Vim Mode and Relative Line Numbers Checkboxes */}
-      <div className="flex items-center space-x-4">
         <label className="label cursor-pointer space-x-2">
           <span className="label-text">Enable Vim Mode</span>
           <input
@@ -73,6 +121,7 @@ const CodeEditorPage = () => {
             className="checkbox checkbox-primary"
             checked={enableVim}
             onChange={(e) => setEnableVim(e.target.checked)}
+            disabled={isRunning}
           />
         </label>
 
@@ -83,38 +132,70 @@ const CodeEditorPage = () => {
             className="checkbox checkbox-primary"
             checked={relativeLineNumbers}
             onChange={(e) => setRelativeLineNumbers(e.target.checked)}
+            disabled={isRunning}
           />
         </label>
       </div>
 
-      {/* Code Editor */}
-      <CodeEditor
-        language={language}
-        theme={theme}
-        initialCode={code}
-        onCodeChange={setCode}
-        enableVim={enableVim}
-        relativeLineNumbers={relativeLineNumbers}
-      />
+      {/* Main Grid Container */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Left Column - Code Editor */}
+        <div className="rounded p-4">
+          <CodeEditor
+            language={language}
+            theme={theme}
+            initialCode={codeHistory[language]}
+            onCodeChange={handleCodeChange}
+            enableVim={enableVim}
+            relativeLineNumbers={relativeLineNumbers}
+            readOnly={isRunning}
+          />
+        </div>
 
-      {/* Input Box */}
-      <textarea
-        className="textarea textarea-bordered w-full max-w-lg"
-        rows={3}
-        placeholder="Input"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-      ></textarea>
+        {/* Right Column - Input, Output, Run Button */}
+        <div className="flex flex-col space-y-4">
+          <div className="flex flex-col">
+            <label htmlFor="input" className="text-lg font-semibold mb-2">
+              Input
+            </label>
+            <textarea
+              id="input"
+              className="textarea textarea-bordered w-full h-24 resize-y"
+              placeholder="Input"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              disabled={isRunning}
+            ></textarea>
+          </div>
 
-      {/* Run Code Button */}
-      <button className="btn btn-primary w-full max-w-lg" onClick={handleRunCode}>
-        Run Code
-      </button>
+          <button
+            className="btn btn-primary w-full"
+            onClick={runCode}
+            disabled={isRunning}
+          >
+            {isRunning ? (
+              <>
+                <span className="loading loading-spinner mr-2"></span>
+                Running...
+              </>
+            ) : (
+              "Run Code"
+            )}
+          </button>
 
-      {/* Output Box */}
-      <div className="w-full max-w-lg p-4 border rounded bg-base-200">
-        <h2 className="text-lg font-semibold">Output</h2>
-        <pre className="mt-2 whitespace-pre-wrap">{output}</pre>
+          <div className="flex flex-col flex-1">
+            <label htmlFor="output" className="text-lg font-semibold mb-2">
+              Output
+            </label>
+            <textarea
+              id="output"
+              className="textarea textarea-bordered w-full h-full resize-y"
+              value={isRunning ? "Running..." : output}
+              readOnly
+              style={{ whiteSpace: "pre-wrap" }}
+            ></textarea>
+          </div>
+        </div>
       </div>
     </div>
   );

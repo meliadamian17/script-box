@@ -1,10 +1,12 @@
 import prisma from "../../../utils/db";
-import { checkAuth } from "../../../utils/middleware";
 import { paginate } from "../../../utils/pagination";
+import { checkAuth } from "../../../utils/middleware";
 
 const handler = async (req, res) => {
+  const { title, tags, content, page, limit, ownedByUser, publicOnly } =
+    req.query;
+
   const userId = req.user?.userId;
-  const { title, tags, content, page, limit, ownedByUser } = req.query;
 
   if (req.method === "GET") {
     try {
@@ -37,8 +39,17 @@ const handler = async (req, res) => {
         ];
       }
 
-      if (ownedByUser === "true" && userId) {
+      if (ownedByUser === "true") {
+        if (!userId) {
+          return res
+            .status(401)
+            .json({ error: "Unauthorized, user not logged in" });
+        }
         queryOptions.where.userId = userId;
+      }
+
+      if (publicOnly === "true") {
+        delete queryOptions.where.userId;
       }
 
       const { skip, take, paginationMeta } = paginate({ page, limit });
@@ -54,7 +65,7 @@ const handler = async (req, res) => {
       });
       const totalPages = Math.ceil(totalItems / paginationMeta.pageSize);
 
-      res.status(200).json({
+      return res.status(200).json({
         templates,
         pagination: {
           ...paginationMeta,
@@ -63,12 +74,20 @@ const handler = async (req, res) => {
         },
       });
     } catch (error) {
-      res.status(500).json({ error: `Failed to fetch templates | ${error}` });
+      return res
+        .status(500)
+        .json({ error: `Failed to fetch templates | ${error.message}` });
     }
   } else if (req.method === "POST") {
     const { title, description, code, language, tags } = req.body;
 
     try {
+      if (!userId) {
+        return res
+          .status(401)
+          .json({ error: "Unauthorized, user not logged in" });
+      }
+
       const template = await prisma.template.create({
         data: {
           title,
@@ -80,13 +99,51 @@ const handler = async (req, res) => {
         },
       });
 
-      res.status(201).json(template);
+      return res.status(201).json(template);
     } catch (error) {
-      res.status(400).json({ error: `Failed to create template | ${error}` });
+      return res
+        .status(400)
+        .json({ error: `Failed to create template | ${error.message}` });
+    }
+  } else if (req.method === "DELETE") {
+    const { id } = req.query;
+
+    try {
+      if (!userId) {
+        return res
+          .status(401)
+          .json({ error: "Unauthorized, user not logged in" });
+      }
+
+      const template = await prisma.template.findUnique({
+        where: { id: parseInt(id, 10) },
+      });
+
+      if (!template || template.userId !== userId) {
+        return res
+          .status(403)
+          .json({ error: "Forbidden, cannot delete this template" });
+      }
+
+      await prisma.template.delete({ where: { id: parseInt(id, 10) } });
+
+      return res.status(200).json({ message: "Template deleted successfully" });
+    } catch (error) {
+      return res
+        .status(400)
+        .json({ error: `Failed to delete template | ${error.message}` });
     }
   } else {
-    res.status(405).json({ error: "Method not allowed" });
+    return res.status(405).json({ error: "Method not allowed" });
   }
 };
 
-export default checkAuth(handler);
+export default async (req, res) => {
+  const { publicOnly } = req.query;
+
+  if (req.method === "GET" && publicOnly === "true") {
+    return handler(req, res);
+  }
+
+  return checkAuth(handler)(req, res);
+};

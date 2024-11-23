@@ -35,7 +35,7 @@ export const helloWorldCodes: Record<SupportedLanguages, string> = {
   php: '<?php\necho "Hello, World!";\n',
   rust: 'fn main() {\n    println!("Hello, World!");\n}',
   r: 'print("Hello, World!")',
-  elixir: 'IO.puts("Hello World!)',
+  elixir: 'IO.puts("Hello World!")',
   csharp: 'using System;\nclass Program {\n    static void Main() {\n        Console.WriteLine("Hello, World!");\n    }\n}',
 };
 
@@ -87,17 +87,16 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   ].filter(Boolean);
 
   return (
-    <CodeMirror
-      value={code}
-      extensions={extensions}
-      theme={themeExtensions[theme]}
-      minWidth="100%"
-      minHeight="500px"
-      style={{
-        borderRadius: "0.5rem",
-      }}
-      onChange={handleCodeChange}
-    />
+    <div className="rounded-md border-2">
+      <CodeMirror
+        value={code}
+        extensions={extensions}
+        theme={themeExtensions[theme]}
+        minWidth="100%"
+        minHeight="500px"
+        onChange={handleCodeChange}
+      />
+    </div>
   );
 };
 
