@@ -10,7 +10,6 @@ const HomePage = () => {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
       <div className="hero bg-base-200 py-10">
         <div className="hero-content flex-col lg:flex-row">
           <CodeBracketIcon className="w-24 h-24 text-primary" />
@@ -30,7 +29,6 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Blogs and Code Section */}
       <div className="flex-grow flex justify-center items-center bg-base-100 py-10">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div
@@ -78,20 +76,6 @@ const HomePage = () => {
           </div>
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="footer p-10 bg-base-200 text-base-content">
-        <div className="flex flex-col items-center">
-          <div className="flex items-center space-x-2">
-            <CodeBracketIcon className="w-10 h-10 text-primary" />
-            <p className="font-bold">
-              Scriptbox
-              <br />
-              Simplifying Development, One Script at a Time.
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };

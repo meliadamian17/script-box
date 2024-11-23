@@ -160,13 +160,13 @@ const ProfilePage = () => {
             </div>
             <div className="flex space-x-2">
               <button
-                className="btn btn-secondary btn-sm"
+                className="btn btn-outline btn-secondary btn-sm"
                 onClick={() => setEditing(true)}
               >
                 Edit Profile
               </button>
               <button
-                className="btn btn-secondary btn-sm"
+                className="btn btn-outline btn-secondary btn-sm"
                 onClick={() => setShowPasswordModal(true)}
               >
                 Change Password
@@ -229,7 +229,7 @@ const ProfilePage = () => {
 
           <div className="mt-4">
             {editing && (
-              <button className="btn btn-primary" onClick={handleSave} disabled={loading}>
+              <button className="btn btn-outline btn-primary" onClick={handleSave} disabled={loading}>
                 Save
               </button>
             )}
@@ -259,7 +259,7 @@ const ProfilePage = () => {
                   </td>
                   <td>
                     <button
-                      className="btn btn-info btn-sm"
+                      className="btn btn-outline btn-info btn-sm"
                       onClick={() => router.push(`/templates/${template.id}`)}
                     >
                       Edit
@@ -283,7 +283,7 @@ const ProfilePage = () => {
         <div className="modal modal-open">
           <div className="modal-box">
             <button
-              className="btn btn-sm btn-circle absolute right-2 top-2"
+              className="btn btn-outline btn-sm btn-circle absolute right-2 top-2"
               onClick={() => setShowPasswordModal(false)}
             >
               ✕
@@ -319,7 +319,7 @@ const ProfilePage = () => {
             )}
             <div className="modal-action">
               <button
-                className="btn btn-primary"
+                className="btn btn-outline btn-primary"
                 onClick={handlePasswordChange}
                 disabled={loading}
               >
