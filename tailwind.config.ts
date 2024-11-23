@@ -19,7 +19,7 @@ const config: Config = {
           "primary-focus": "#ff80bf",
           "primary-content": "#1b1c22",
 
-          secondary: "#b9ffb3",
+          secondary: "#bd93f9",
           "secondary-focus": "#8aff80",
           "secondary-content": "#1b1c22",
 
@@ -39,7 +39,7 @@ const config: Config = {
           info: "#1c92f2",
           success: "#009485",
           warning: "#ff9900",
-          error: "#ff5724",
+          error: "#fe5555",
 
           "--rounded-box": "1rem",
           "--rounded-btn": ".5rem",
