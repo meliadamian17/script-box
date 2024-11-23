@@ -151,7 +151,6 @@ const TemplatesPage = () => {
     <div className="container mx-auto py-6">
       <h1 className="text-3xl font-bold mb-6">Templates</h1>
 
-      {/* Tabs Section */}
       <div className="tabs tabs-bordered tabs-lg" role="tablist">
         {user && (
           <a
