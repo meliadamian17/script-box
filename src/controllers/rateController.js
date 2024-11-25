@@ -20,11 +20,6 @@ export const ratePost = checkAuth(async (req, res) => {
   });
 
   if (ratingExists) {
-    //if (parseInt(vote) <= -1 || parseInt(vote) >= 1) {
-    //  return res
-    //    .status(400)
-    //    .json({ message: "Can only cast votes of abs(val) = 1" });
-    //}
     await prisma.blogPost.update({
       where: { id: parseInt(postID) },
       data: {

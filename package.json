@@ -64,6 +64,7 @@
     "recharts": "^2.13.3",
     "vscode-ws-jsonrpc": "^3.3.2",
     "ws": "^8.18.0"
+    "react-tagsinput": "^3.20.3",
   },
   "devDependencies": {
     "@heroicons/react": "^2.1.5",

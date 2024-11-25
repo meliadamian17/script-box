@@ -77,11 +77,11 @@ export const getPosts = checkAuth(async (req, res) => {
   const userId = req.user?.userId;
 
   if (title) {
-    queryOptions.where.title = { contains: title }; // Preserve original case
+    queryOptions.where.title = { contains: title }; 
   }
 
   if (tags) {
-    const tagsArray = tags.split(","); // Preserve original case
+    const tagsArray = tags.split(","); 
     queryOptions.where.tags = { hasSome: tagsArray };
   }
 
@@ -149,6 +149,7 @@ export const getPosts = checkAuth(async (req, res) => {
         totalItems,
         totalPages,
       },
+      userId
     });
   } catch (error) {
     res
@@ -158,28 +159,44 @@ export const getPosts = checkAuth(async (req, res) => {
 });
 
 export const createPost = checkAuth(async (req, res) => {
-  const { title, description, content, tags, rating, template } = req.body;
+  console.log('User:', req.user);
+  console.log("Reached controller")
+  const { title, description, content, tags, rating, templates } = req.body;
   const authorId = req.user?.userId;
-
+  console.log(authorId)
+  console.log('Incoming request body:', req.body);
+  console.log('Post ID: ', )
   if (!title || !description || !content || !authorId) {
     return res.status(400).json({ message: "Missing required fields." });
   }
 
+
+
+
   try {
+    const tagsArray = Array.isArray(tags) ? tags : [];
+    const uniqTags = [...new Set(tagsArray)]; 
+
+
+    const tagsString = uniqTags.join(",");  
+    
+    console.log("TRY")
     const post = await prisma.blogPost.create({
       data: {
         title,
         description,
         content,
-        tags,
+        tags: tagsString,
         rating,
         authorId,
-        template,
+        templates,
       },
     });
+    console.log('Post ID: ', post.id);
 
     return res.status(201).json(post);
   } catch (error) {
+    console.log("catch")
     console.error(error);
     return res
       .status(500)
