@@ -1,7 +1,8 @@
 import prisma from "../../../utils/db";
 import { checkAuth } from "../../../utils/middleware";
+import { NextApiRequest, NextApiResponse } from "next";
 
-const handler = async (req, res) => {
+const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }

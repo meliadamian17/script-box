@@ -33,7 +33,7 @@ const HomePage = () => {
             templates and blogs.
           </p>
           <button
-            className="btn btn-primary mt-6"
+            className="btn btn-primary mt-6 hover:scale-105"
             onClick={() => router.push("/code")}
           >
             Start Coding Now
@@ -112,13 +112,12 @@ const HomePage = () => {
         </h2>
 
         <div className="flex-grow flex justify-center items-center py-10 ">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-24 px-4">
             {/* Blog Card */}
             <Card
               isFooterBlurred
               radius="lg"
-              className="border-none shadow-md items-center hover:shadow-xl transform transition-transform hover:scale-105 h-[30rem] w-[30rem]"
-              onClick={() => router.push("/blogs")}
+              className="hover:border rounded-lg shadow-md items-center hover:shadow-xl transform transition-transform hover:scale-105 h-[30rem] w-[30rem]"
             >
               <Image
                 alt="Blogs"
@@ -150,8 +149,7 @@ const HomePage = () => {
             <Card
               isFooterBlurred
               radius="lg"
-              className="border-none items-center shadow-md hover:shadow-xl transform transition-transform hover:scale-105 h-[30rem] w-[30rem]"
-              onClick={() => router.push("/templates")}
+              className="hover:border rounded-lg items-center shadow-md hover:shadow-xl transform transition-transform hover:scale-105 h-[30rem] w-[30rem]"
             >
               <Image
                 alt="Code"

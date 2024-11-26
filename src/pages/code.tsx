@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import CodeEditor, { helloWorldCodes } from "../components/CodeEditor";
 import { SupportedLanguages } from "@/utils/templates/types";
+import { useAuth } from "@/context/AuthContext";
 
 const CodeEditorPage = () => {
   const router = useRouter();
   const { title, description, language: queryLanguage, code, tags } = router.query;
+  const { user } = useAuth();
 
   const [language, setLanguage] = useState<SupportedLanguages>(
     (queryLanguage as SupportedLanguages) || "python"
@@ -149,6 +151,7 @@ const CodeEditorPage = () => {
             enableVim={enableVim}
             relativeLineNumbers={relativeLineNumbers}
             readOnly={isRunning}
+            user={user}
           />
         </div>
 

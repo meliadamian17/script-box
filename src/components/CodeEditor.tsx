@@ -23,6 +23,7 @@ interface CodeEditorProps {
   onCodeChange?: (code: string) => void;
   enableVim: boolean;
   relativeLineNumbers: boolean;
+  user: any;
   readOnly: boolean;
 }
 
@@ -48,6 +49,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   enableVim,
   relativeLineNumbers,
   readOnly,
+  user,
 }) => {
   const [code, setCode] = useState(initialCode || helloWorldCodes[language]);
 
@@ -103,7 +105,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         languageExtensions[language],
         enableVim ? vim() : null,
         relativeLineNumbers ? lineNumbersRelative : null,
-        copilotExtension,
+        user ? copilotExtension : null,
       ].filter(Boolean),
     [language, enableVim, relativeLineNumbers, copilotExtension]
   );
