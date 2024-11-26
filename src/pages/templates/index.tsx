@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/router";
+import { helloWorldCodes } from "@/components/CodeEditor";
 
 interface Template {
   id: number;
@@ -68,7 +69,7 @@ const TemplatesPage = () => {
         body: JSON.stringify({
           title: "Untitled Template",
           description: "New template",
-          code: "",
+          code: helloWorldCodes["python"],
           language: "python",
           tags: "",
         }),
