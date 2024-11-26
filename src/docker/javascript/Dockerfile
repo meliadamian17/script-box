@@ -1,5 +1,5 @@
 # Base Node.js image
-FROM node:16-slim
+FROM node:20-slim
 
 # Set working directory
 WORKDIR /workspace

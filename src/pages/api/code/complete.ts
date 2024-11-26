@@ -16,9 +16,9 @@ async function completion(
     messages: [
       {
         role: "system",
-        content: `You are a ${
+        content: `You are the best and most skilled software engineer at Google and you are a ${
           language ? language + " " : ""
-        }programmer that replaces <FILL_ME> part with the right code. Only output the code that replaces <FILL_ME> part. Do not add any explanation or markdown.`,
+        }programmer that replaces <FILL_ME> part with the right code. Only output the code that replaces <FILL_ME> part. Do not add any explanation or markdown or the code formatting around the code.`,
       },
       { role: "user", content: `${prefix}<FILL_ME>${suffix}` },
     ],
