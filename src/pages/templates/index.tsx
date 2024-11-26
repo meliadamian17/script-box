@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/router";
 import { helloWorldCodes } from "@/components/CodeEditor";
+import { SupportedLanguages } from "@/utils/templates/types";
 
 interface Template {
   id: number;
@@ -35,6 +36,24 @@ const TemplatesPage = () => {
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({ title: "", tags: "", content: "" });
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [Language, setLanguage] = useState<SupportedLanguages>("python")
+
+  useEffect(() => {
+    const fetchPreferences = async () => {
+      try {
+        const res = await fetch("/api/user/preferences");
+        if (res.ok) {
+          const data = await res.json();
+          setLanguage(data.defaultLanguage);
+        }
+      } catch (error) {
+        console.error("Failed to fetch preferences", error);
+      }
+    };
+
+    fetchPreferences();
+  }, []);
+
 
   const fetchTemplates = async (page: number, owned: boolean) => {
     setLoading(true);
@@ -69,8 +88,8 @@ const TemplatesPage = () => {
         body: JSON.stringify({
           title: "Untitled Template",
           description: "New template",
-          code: helloWorldCodes["python"],
-          language: "python",
+          code: helloWorldCodes[Language],
+          language: Language,
           tags: "",
         }),
       });

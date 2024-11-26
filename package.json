@@ -8,6 +8,9 @@
     "start": "next start",
     "lint": "next lint"
   },
+  "prisma": {
+    "seed": "npx ts-node ./prisma/seed.ts"
+  },
   "dependencies": {
     "@codemirror/autocomplete": "^6.18.3",
     "@codemirror/lang-cpp": "^6.0.2",

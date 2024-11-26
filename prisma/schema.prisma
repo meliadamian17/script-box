@@ -7,25 +7,37 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model UserPreferences {
+  id                  Int      @id @default(autoincrement())
+  defaultLanguage     String   @default("python")
+  defaultTheme        String   @default("dark")
+  enableVim           Boolean  @default(false)
+  relativeLineNumbers Boolean  @default(false)
+
+  user                User     @relation(fields: [userId], references: [id])
+  userId              Int      @unique
+}
+
 model User {
-  id           Int       @id @default(autoincrement())
+  id           Int             @id @default(autoincrement())
   firstName    String
   lastName     String
-  email        String     @unique
+  email        String           @unique
   password     String
   profileImage String?
   phoneNumber  String?
-  role         String     @default("USER")
+  role         String           @default("USER")
   refreshToken String?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
 
+  preferences  UserPreferences?
   templates    Template[]
   blogPosts    BlogPost[]
   comments     Comment[]
   reports      Report[]
-  ratings     CommentRating[] @relation("UserRatings") 
-  postRatings BlogPostRating[]
+  ratings      CommentRating[] @relation("UserRatings")
+  postRatings  BlogPostRating[]
 }
 
 model Template {

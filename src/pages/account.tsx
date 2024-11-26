@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/router";
+import PreferencesSection from "@/components/UserPreferences";
 
 interface Template {
   id: number;
@@ -237,7 +238,9 @@ const ProfilePage = () => {
         </div>
       )}
 
-      <h2 className="text-2xl font-bold mb-4">My Templates</h2>
+      <PreferencesSection />
+
+      <h2 className="mt-20 text-2xl font-bold mb-4">My Templates</h2>
       <div className="overflow-x-auto">
         <table className="table w-full">
           <thead>

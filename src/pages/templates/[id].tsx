@@ -8,7 +8,12 @@ import Alert from "@/components/Alert";
 const TemplateEditorPage = () => {
   const router = useRouter();
   const { id } = router.query;
-
+  const [preferences, setPreferences] = useState({
+    defaultLanguage: "python",
+    defaultTheme: "dark",
+    enableVim: false,
+    relativeLineNumbers: false,
+  });
   const [templateData, setTemplateData] = useState<any>(null);
   const [language, setLanguage] = useState<SupportedLanguages>("python");
   const [theme, setTheme] = useState("dark");
@@ -28,6 +33,26 @@ const TemplateEditorPage = () => {
     setAlerts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => setAlerts((prev) => prev.filter((alert) => alert.id !== id)), duration);
   };
+
+  useEffect(() => {
+    const fetchPreferences = async () => {
+      try {
+        const res = await fetch("/api/user/preferences");
+        if (res.ok) {
+          const data = await res.json();
+          setPreferences(data);
+          setLanguage(data.defaultLanguage);
+          setTheme(data.defaultTheme);
+          setEnableVim(data.enableVim);
+          setRelativeLineNumbers(data.relativeLineNumbers);
+        }
+      } catch (error) {
+        console.error("Failed to fetch preferences", error);
+      }
+    };
+
+    fetchPreferences();
+  }, []);
 
   useEffect(() => {
     const fetchTemplate = async () => {
@@ -54,7 +79,7 @@ const TemplateEditorPage = () => {
     };
 
     fetchTemplate();
-  }, [id]);
+  }, [id, preferences]);
 
   const saveTemplate = async () => {
     try {
@@ -78,6 +103,21 @@ const TemplateEditorPage = () => {
       addAlert("Error: Unable to save template.", "error");
     }
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault();
+        saveTemplate();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [saveTemplate]);
 
   const runCode = async () => {
     setIsRunning(true);
@@ -120,8 +160,8 @@ const TemplateEditorPage = () => {
         body: JSON.stringify({
           title: "Untitled Template",
           description: "New template",
-          code: helloWorldCodes["python"],
-          language: "python",
+          code: helloWorldCodes[preferences.defaultLanguage as SupportedLanguages],
+          language: preferences.defaultLanguage,
           tags: "",
         }),
       });
