@@ -42,7 +42,7 @@ const Navbar = () => {
   }, []);
 
   return (
-    <div className="navbar bg-base-100 shadow-lg">
+    <div className="navbar bg-base-300 shadow-xl">
       <div className="flex-1">
         <Link href="/" className="flex items-center gap-2">
           <CodeBracketIcon className="w-8 h-8 text-primary" />

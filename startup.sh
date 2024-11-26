@@ -5,7 +5,7 @@ set -e
 echo "Starting setup..."
 
 echo "Installing npm packages..."
-npm install --force
+npm install
 
 echo "Running database migrations..."
 npx prisma migrate dev --name init

@@ -9,7 +9,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
     <AuthProvider>
       <div className="flex flex-col min-h-screen">
         <Navbar />
-        <main className="flex-grow">
+        <main className="flex-grow bg-base-200">
           <Component {...pageProps} />
         </main>
         <Footer />

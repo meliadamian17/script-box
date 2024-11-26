@@ -23,6 +23,7 @@ interface CodeEditorProps {
   onCodeChange?: (code: string) => void;
   enableVim: boolean;
   relativeLineNumbers: boolean;
+  readOnly: boolean;
 }
 
 export const helloWorldCodes: Record<SupportedLanguages, string> = {
@@ -46,6 +47,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   onCodeChange,
   enableVim,
   relativeLineNumbers,
+  readOnly,
 }) => {
   const [code, setCode] = useState(initialCode || helloWorldCodes[language]);
 
@@ -114,7 +116,8 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
         theme={themeExtensions[theme]}
         minWidth="100%"
         minHeight="500px"
-        onChange={handleCodeChange}
+        onChange={readOnly ? undefined : handleCodeChange}
+        editable={!readOnly}
       />
     </div>
   );

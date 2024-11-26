@@ -15,6 +15,7 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  transpilePackages: ["nextjs-simple-typewriter"],
 };
 
 export default nextConfig;

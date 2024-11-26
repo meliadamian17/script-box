@@ -24,6 +24,8 @@ const TemplateEditorPage = () => {
   const [codeHistory, setCodeHistory] = useState<Record<SupportedLanguages, string>>({});
   const [title, setTitle] = useState("");
   const [editingTitle, setEditingTitle] = useState(false);
+  const [description, setDescription] = useState("");
+  const [editingDescription, setEditingDescription] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isRunning, setIsRunning] = useState(false);
   const [alerts, setAlerts] = useState<{ id: number; message: string; type: "success" | "error" | "warning" | "info" }[]>([]);
@@ -66,6 +68,7 @@ const TemplateEditorPage = () => {
             setCodeHistory({
               [data.language || "python"]: data.code || helloWorldCodes[data.language || "python"],
             });
+            setDescription(data.description || "")
             setTitle(data.title || "");
           } else {
             addAlert("Failed to fetch template.", "error");
@@ -88,6 +91,7 @@ const TemplateEditorPage = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
+          description,
           code: codeHistory[language],
           language,
         }),
@@ -259,6 +263,34 @@ const TemplateEditorPage = () => {
           <button className="btn btn-primary" onClick={saveTemplate} disabled={isRunning}>
             Save Template
           </button>
+        </div>
+
+        {/* Editable Description */}
+        <div className="mb-6">
+          <label htmlFor="description" className="block text-lg font-semibold mb-2">
+            Description
+          </label>
+          {editingDescription ? (
+            <div className="flex items-center space-x-4">
+              <input
+                id="description"
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="input input-bordered w-full max-w-lg"
+              />
+              <button className="btn btn-primary" onClick={() => setEditingDescription(false)}>
+                Save
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-4">
+              <span className="text-gray-600">{description || "No description provided"}</span>
+              <button className="btn btn-ghost" onClick={() => setEditingDescription(true)}>
+                Edit
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Editor Options */}
