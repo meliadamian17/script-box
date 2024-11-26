@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import Alert from "./Alert";
 
 const PreferencesSection = () => {
   const [preferences, setPreferences] = useState({
@@ -7,6 +8,13 @@ const PreferencesSection = () => {
     enableVim: false,
     relativeLineNumbers: false,
   });
+  const [alerts, setAlerts] = useState<{ id: number; message: string; type: "success" | "error" }[]>([]);
+
+  const addAlert = (message: string, type: "success" | "error", duration = 3000) => {
+    const id = Date.now();
+    setAlerts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => setAlerts((prev) => prev.filter((alert) => alert.id !== id)), duration);
+  };
 
   const fetchPreferences = async () => {
     try {
@@ -14,9 +22,11 @@ const PreferencesSection = () => {
       if (res.ok) {
         const data = await res.json();
         setPreferences(data);
+      } else {
+        throw new Error("Failed to fetch preferences");
       }
     } catch (error) {
-      console.error("Failed to fetch preferences", error);
+      addAlert(error.message || "Error fetching preferences", "error");
     }
   };
 
@@ -28,10 +38,12 @@ const PreferencesSection = () => {
         body: JSON.stringify(preferences),
       });
       if (res.ok) {
-        alert("Preferences saved successfully!");
+        addAlert("Preferences saved successfully!", "success");
+      } else {
+        throw new Error("Failed to save preferences");
       }
     } catch (error) {
-      console.error("Failed to save preferences", error);
+      addAlert(error.message || "Error saving preferences", "error");
     }
   };
 
@@ -116,6 +128,10 @@ const PreferencesSection = () => {
           Save Preferences
         </button>
       </div>
+
+      {alerts.map((alert) => (
+        <Alert key={alert.id} message={alert.message} type={alert.type} />
+      ))}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { python } from "@codemirror/lang-python";
 import { javascript } from "@codemirror/lang-javascript";
@@ -9,12 +9,12 @@ import { php } from "@codemirror/lang-php";
 import { rust } from "@codemirror/lang-rust";
 import { r } from "codemirror-lang-r";
 import { csharp } from "@replit/codemirror-lang-csharp";
-import { elixir } from "codemirror-lang-elixir"
+import { elixir } from "codemirror-lang-elixir";
 import { vim } from "@replit/codemirror-vim";
 import { lineNumbersRelative } from "@uiw/codemirror-extensions-line-numbers-relative";
 import { dracula, githubLight, sublime, monokai, monokaiDimmed } from "@uiw/codemirror-themes-all";
-import { SupportedLanguages } from "@/utils/templates/types"
-
+import { SupportedLanguages } from "@/utils/templates/types";
+import { inlineCopilot } from "codemirror-copilot";
 
 interface CodeEditorProps {
   language: SupportedLanguages;
@@ -80,11 +80,31 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     monokaiDimmed: monokaiDimmed,
   };
 
-  const extensions = [
-    languageExtensions[language],
-    enableVim ? vim() : null,
-    relativeLineNumbers ? lineNumbersRelative : null,
-  ].filter(Boolean);
+  const copilotExtension = useMemo(() => {
+    return inlineCopilot(async (prefix, suffix) => {
+      const res = await fetch("/api/code/complete", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prefix, suffix, language }),
+      });
+
+      const { prediction } = await res.json();
+      return prediction;
+    }, 1000);
+  }, [language]);
+
+  const extensions = useMemo(
+    () =>
+      [
+        languageExtensions[language],
+        enableVim ? vim() : null,
+        relativeLineNumbers ? lineNumbersRelative : null,
+        copilotExtension,
+      ].filter(Boolean),
+    [language, enableVim, relativeLineNumbers, copilotExtension]
+  );
 
   return (
     <div className="rounded-md border-2">
