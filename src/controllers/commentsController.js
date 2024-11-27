@@ -71,13 +71,13 @@ export const getComments = checkAuth(async (req, res) => {
   };
 
   if (sortBy) {
-    console.log(req.user);
+    if (sortBy === "reports" && req.user?.role !== "ADMIN") {
+      return res
+        .status(403)
+        .json({ message: "Only ADMIN can filter by reports." });
+    }
+
     if (sortBy === "reports") {
-      if (req.user?.role !== "ADMIN") {
-        return res
-          .status(403)
-          .json({ message: "Only ADMIN can filter by reports." });
-      }
       queryOptions.orderBy = { reports: { _count: "desc" } };
     } else if (["asc", "desc"].includes(sortBy)) {
       queryOptions.orderBy = { rating: sortBy };
@@ -91,6 +91,7 @@ export const getComments = checkAuth(async (req, res) => {
   queryOptions.where = {
     ...queryOptions.where,
     blogPostId: parseInt(postID),
+    parentId: null, // Fetch only top-level comments
   };
 
   const { skip, take, paginationMeta } = paginate({ page, limit });
@@ -105,11 +106,35 @@ export const getComments = checkAuth(async (req, res) => {
           profileImage: true,
         },
       },
+      replies: {
+        include: {
+          user: {
+            select: {
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+            },
+          },
+          ratings: true,
+        },
+        orderBy: { createdAt: "asc" },
+      },
       ratings: true,
+      _count: {
+        select: {
+          replies: true, // This will calculate the reply count
+        },
+      },
     },
     skip,
     take,
   });
+
+  // Map the comments to include replyCount explicitly
+  const formattedComments = comments.map((comment) => ({
+    ...comment,
+    replyCount: comment._count.replies, // Add replyCount as a top-level property
+  }));
 
   const totalItems = await prisma.comment.count({
     where: queryOptions.where,
@@ -117,7 +142,7 @@ export const getComments = checkAuth(async (req, res) => {
   const totalPages = Math.ceil(totalItems / paginationMeta.pageSize);
 
   res.status(200).json({
-    comments,
+    formattedComments,
     pagination: {
       ...paginationMeta,
       totalItems,
@@ -127,22 +152,41 @@ export const getComments = checkAuth(async (req, res) => {
 });
 
 export const createPostComment = checkAuth(async (req, res) => {
-  const { content, blogPostId } = req.body;
+  const { content, blogPostId, parentId } = req.body;
   const userId = req.user?.userId;
 
-  const postExists = await prisma.blogPost.findUnique({
-    where: { id: parseInt(blogPostId) },
-  });
+  if (!content || (!blogPostId && !parentId)) {
+    return res.status(400).json({
+      message: "Content and either blogPostId or parentId are required.",
+    });
+  }
 
-  if (!postExists) {
-    return res.status(404).json({ message: "Post does not exist." });
+  if (parentId) {
+    const parentComment = await prisma.comment.findUnique({
+      where: { id: parentId },
+    });
+
+    if (!parentComment) {
+      return res
+        .status(404)
+        .json({ message: "Parent comment does not exist." });
+    }
+  } else {
+    const postExists = await prisma.blogPost.findUnique({
+      where: { id: parseInt(blogPostId) },
+    });
+
+    if (!postExists) {
+      return res.status(404).json({ message: "Post does not exist." });
+    }
   }
 
   const comment = await prisma.comment.create({
     data: {
       content,
       userId,
-      blogPostId: parseInt(blogPostId),
+      blogPostId: blogPostId ? parseInt(blogPostId) : null,
+      parentId: parentId || null,
     },
   });
 

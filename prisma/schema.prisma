@@ -112,6 +112,10 @@ model Comment {
   template     Template?      @relation("TemplateComments", fields: [templateId], references: [id])
   templateId   Int?
   
+  parent       Comment?       @relation("CommentReplies", fields: [parentId], references: [id])
+  parentId     Int?
+  replies      Comment[]      @relation("CommentReplies")
+
   report       Report?        @relation("CommentReport")
 
   ratings      CommentRating[] @relation("CommentRatings") 

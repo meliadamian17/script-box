@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import CommentItem from "@/components/Blogs/CommentItem";
 
 const CommentsSection = ({ postId, userId }) => {
-  const [comments, setComments] = useState([]);
+  const [comments, setComments] = useState([]); // Initialize as an empty array
   const [commentText, setCommentText] = useState("");
 
   useEffect(() => {
@@ -13,7 +13,7 @@ const CommentsSection = ({ postId, userId }) => {
     const response = await fetch(`/api/comments/comments?postID=${postId}`);
     if (response.ok) {
       const data = await response.json();
-      setComments(data.comments);
+      setComments(data.formattedComments || []);
     } else {
       console.error("Failed to fetch comments");
     }
@@ -30,6 +30,22 @@ const CommentsSection = ({ postId, userId }) => {
       fetchComments();
     }
   };
+
+  const updateReplyCount = (commentId, increment) => {
+    const updateNestedReplies = (commentsList) =>
+      commentsList.map((comment) => {
+        if (comment.id === commentId) {
+          return { ...comment, replyCount: (comment.replyCount || 0) + increment };
+        }
+        if (comment.replies) {
+          return { ...comment, replies: updateNestedReplies(comment.replies) };
+        }
+        return comment;
+      });
+
+    setComments((prevComments) => updateNestedReplies(prevComments));
+  };
+
 
   return (
     <div className="bg-base-200 shadow-md rounded-lg p-8">
@@ -54,6 +70,7 @@ const CommentsSection = ({ postId, userId }) => {
             userId={userId}
             onVote={fetchComments}
             onDelete={fetchComments}
+            onUpdateReplyCount={updateReplyCount}
           />
         ))
       ) : (
