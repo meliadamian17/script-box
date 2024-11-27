@@ -111,19 +111,17 @@ export default function Post() {
   const [comment, setComment] = useState("");
   const [content, setContent] = useState("");
   const [userId, setUserId] = useState();
+  const [isVisible, setIsVisible] = useState(false);
 
   const id = Number(router.query.id);
 
-
   const deleteComment = async (id: number) => {
     const response = await fetch(`../api/comments/${id}`, {
-      method: 'DELETE',
+      method: "DELETE",
     });
-    if(response.ok){
+    if (response.ok) {
       await fetchComments();
     }
-    
-    
   };
   const handleCommentUpvote = async (commentId: number) => {
     try {
@@ -132,14 +130,13 @@ export default function Post() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
-          'commentID':commentId, 
-          'vote': 1, 
+        body: JSON.stringify({
+          commentID: commentId,
+          vote: 1,
         }),
       });
-  
+
       if (response.ok) {
-      
         await fetchComments();
       } else {
         console.error("Failed to upvote");
@@ -156,12 +153,12 @@ export default function Post() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
-          'commentID':commentId, 
-          'vote': -1, 
+        body: JSON.stringify({
+          commentID: commentId,
+          vote: -1,
         }),
       });
-  
+
       if (response.ok) {
         await fetchComments();
       } else {
@@ -172,7 +169,6 @@ export default function Post() {
     }
   };
 
-
   const handlePostUpvote = async (postId: number) => {
     try {
       const response = await fetch(`../api/posts/rate`, {
@@ -180,12 +176,12 @@ export default function Post() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
-          'postID':postId, 
-          'vote': 1, 
+        body: JSON.stringify({
+          postID: postId,
+          vote: 1,
         }),
       });
-  
+
       if (response.ok) {
         await fetchPost();
       } else {
@@ -203,12 +199,12 @@ export default function Post() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
-          'postID':postId, 
-          'vote': -1, 
+        body: JSON.stringify({
+          postID: postId,
+          vote: -1,
         }),
       });
-  
+
       if (response.ok) {
         await fetchPost();
       } else {
@@ -218,10 +214,6 @@ export default function Post() {
       console.error("Error upvoting post", error);
     }
   };
-
-
-
-
 
   const handleCommentChange = (e) => {
     setComment(e.target.value);
@@ -256,24 +248,17 @@ export default function Post() {
     setContent("");
   };
 
-
-
-
-
-
-
   const fetchPost = async () => {
     const response = await fetch(`/api/posts/${id}`);
     const data = await response.json();
     if (response.ok) {
-      console.log(data.post)
-      console.log(data.userId)
+      console.log(data.post);
+      console.log(data.userId);
       setPost(data.post);
-      setUserId(data.userId)
+      setUserId(data.userId);
     } else {
       console.error("Failed to fetch post");
     }
- 
   };
 
   useEffect(() => {
@@ -309,20 +294,28 @@ export default function Post() {
     );
   }
 
+  const editCommentVisibility = () => {
+    // edit comment
+    setIsVisible(!isVisible);
+  };
+
   return (
     <div className="bg-dark-bg flex flex-col justify-center items-center px-4 pt-0 pb-0 space-y-8">
       <div className="bg-dark-card w-11/12 p-8 rounded-lg shadow-lg flex relative">
         <div className="flex flex-col items-center space-y-2 mr-6">
-          <button 
-          className="text-gray hover:text-green-500"
-          onClick={() => handlePostUpvote(post.id)}
-          >▲
+          <button
+            className="text-gray hover:text-green-500"
+            onClick={() => handlePostUpvote(post.id)}
+          >
+            ▲
           </button>
           <p className="font-semibold text-xl">{post.rating}</p>
-          <button 
-          className="text-gray hover:text-red-500"
-          onClick={() => handlePostDownvote(post.id)}
-          >▼</button>
+          <button
+            className="text-gray hover:text-red-500"
+            onClick={() => handlePostDownvote(post.id)}
+          >
+            ▼
+          </button>
         </div>
 
         <div className="flex-1">
@@ -391,22 +384,27 @@ export default function Post() {
                 </button>
                 {menuOpen === comment.id && (
                   <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-10">
-                  {comment.userId === userId && (
-                    <div className = "owner-rights" >
-                      <button
-                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                        onClick={() => console.log(`Edit ${post.id}`)} 
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
-                        onClick={() => confirm("Are you sure you want to delete this comment?") && deleteComment(comment.id)} 
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  )}
+                    {comment.userId === userId && (
+                      <div className="owner-rights">
+                        <button
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                          onClick={editCommentVisibility}
+                        >
+                          Edit
+                        </button>
+
+                        <button
+                          className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
+                          onClick={() =>
+                            confirm(
+                              "Are you sure you want to delete this comment?"
+                            ) && deleteComment(comment.id)
+                          }
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    )}
 
                     <button
                       className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
@@ -417,12 +415,33 @@ export default function Post() {
                   </div>
                 )}
               </div>
+              <div className="mt-8 flex items-center space-x-4">
+                {isVisible && (
+                  <textarea
+                    value={comment.content}
+                    onInput={handleCommentChange}
+                    placeholder="Add a comment..."
+                    className="w-3/4 px-4 py-2 text-gray-900 rounded-lg bg-gray-200 border border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none overflow-hidden"
+                    style={{ minHeight: "40px", maxWidth: "100%" }}
+                  />
+                )}
+
+                {isVisible && (
+                  <button
+                    onClick={handleSubmit}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  >
+                    Comment
+                  </button>
+                )}
+              </div>
+              {!isVisible && <p className="text-md mb-4">{comment.content}</p>}
               <div className="flex justify-between items-center mb-2">
                 <p className="text-sm text-gray-400">
                   By: {comment.user.firstName} {comment.user.lastName}
                 </p>
               </div>
-              <p className="text-md mb-4">{comment.content}</p>
+              
 
               <div className="flex items-center space-x-4">
                 <button
