@@ -2,12 +2,13 @@ import prisma from "../../../utils/db";
 import { checkAuth } from "../../../utils/middleware";
 
 const handler = async (req, res) => {
-  const userId = req.user.userId;
-  const { id } = req.query;
+  const userId = req.user?.userId;
+  const { id, viewOnly } = req.query;
+
   if (req.method === "GET") {
     try {
       const template = await prisma.template.findUnique({
-        where: { id: parseInt(id) },
+        where: { id: parseInt(id, 10) },
         include: {
           user: {
             select: {
@@ -23,8 +24,8 @@ const handler = async (req, res) => {
         return res.status(404).json({ error: "Template not found" });
       }
 
-      if (template.userId !== userId) {
-        console.log(template.userId, userId);
+      // Check if user has access unless `viewOnly` is true
+      if (!viewOnly && template.userId !== userId) {
         return res
           .status(403)
           .json({ error: "Access denied to this template." });
@@ -41,7 +42,7 @@ const handler = async (req, res) => {
 
     try {
       const existingTemplate = await prisma.template.findUnique({
-        where: { id: parseInt(id) },
+        where: { id: parseInt(id, 10) },
       });
 
       if (!existingTemplate || existingTemplate.userId !== userId) {
@@ -51,7 +52,7 @@ const handler = async (req, res) => {
       }
 
       const updatedTemplate = await prisma.template.update({
-        where: { id: parseInt(id) },
+        where: { id: parseInt(id, 10) },
         data: {
           title: title || undefined,
           description: description || undefined,
@@ -70,7 +71,7 @@ const handler = async (req, res) => {
   } else if (req.method === "DELETE") {
     try {
       const existingTemplate = await prisma.template.findUnique({
-        where: { id: parseInt(id) },
+        where: { id: parseInt(id, 10) },
       });
 
       if (!existingTemplate || existingTemplate.userId !== userId) {
@@ -79,7 +80,7 @@ const handler = async (req, res) => {
         });
       }
 
-      await prisma.template.delete({ where: { id: parseInt(id) } });
+      await prisma.template.delete({ where: { id: parseInt(id, 10) } });
 
       res.status(204).end();
     } catch (error) {

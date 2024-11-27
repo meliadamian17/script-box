@@ -60,7 +60,7 @@ const TemplateEditorPage = () => {
     const fetchTemplate = async () => {
       if (id) {
         try {
-          const res = await fetch(`/api/templates/${id}`);
+          const res = await fetch(`/api/templates/${id}viewOnly=false`);
           if (res.ok) {
             const data = await res.json();
             setTemplateData(data);

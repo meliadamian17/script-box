@@ -27,7 +27,7 @@ const ViewOnlyTemplatePage = () => {
     const fetchTemplate = async () => {
       if (id) {
         try {
-          const res = await fetch(`/api/templates/${id}`);
+          const res = await fetch(`/api/templates/${id}?viewOnly=true`);
           if (res.ok) {
             const data = await res.json();
             setTemplateData(data);

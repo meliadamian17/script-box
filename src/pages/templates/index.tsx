@@ -3,6 +3,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useRouter } from "next/router";
 import { helloWorldCodes } from "@/components/CodeEditor";
 import { SupportedLanguages } from "@/utils/templates/types";
+import placeholder from "../../../public/images/profile/default.jpg"
 
 interface Template {
   id: number;
@@ -121,6 +122,12 @@ const TemplatesPage = () => {
     setFilters((prev) => ({ ...prev, [name]: value }));
     setCurrentPage(1);
   };
+
+  const handleViewTemplate = async (template: Template) => {
+    router.push(
+      `/templates/view/${template.id}?viewOnly=true`
+    )
+  }
 
   const handleForkTemplate = async (template: Template) => {
     if (user) {
@@ -282,7 +289,7 @@ const TemplatesPage = () => {
                         <div className="avatar">
                           <div className="w-12 h-12 rounded-full">
                             <img
-                              src={template.user?.profileImage || "/placeholder.jpg"}
+                              src={template.user?.profileImage || placeholder.src}
                               alt="Owner"
                             />
                           </div>
@@ -301,6 +308,7 @@ const TemplatesPage = () => {
                   <td>
                     <pre className="truncate max-w-xs">{template.code}</pre>
                   </td>
+
                   <td>
                     {activeTab === "owned" && (
                       <>
@@ -318,12 +326,21 @@ const TemplatesPage = () => {
                         </button>
                       </>
                     )}
+                    {activeTab === "public" && (
+                      <button
+                        className="btn btn-outline btn-info btn-sm ml-2"
+                        onClick={() => handleViewTemplate(template)}
+                      >
+                        View
+                      </button>
+                    )}
                     <button
                       className="btn btn-outline btn-secondary btn-sm ml-2"
                       onClick={() => handleForkTemplate(template)}
                     >
                       Fork
                     </button>
+
                   </td>
                 </tr>
               ))

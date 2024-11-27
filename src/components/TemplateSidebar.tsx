@@ -98,7 +98,7 @@ const TemplateSidebar: React.FC<TemplateSidebarProps> = ({ onCreate, onRename, o
         }`}
     >
       <div className="flex items-center justify-between px-4 py-3 border-b bg-base-300">
-        {!collapsed && <h2 className="text-lg font-semibold">Templates</h2>}
+        {!collapsed && <h2 className="text-lg font-semibold">My Templates</h2>}
         <button
           className="btn btn-ghost btn-circle"
           onClick={() => setCollapsed(!collapsed)}

@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { CodeBracketIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
-
+import placeholder from "../../public/images/profile/default.jpg"
 const Navbar = () => {
   const { user, logout } = useAuth();
   const [profileImage, setProfileImage] = useState<string | null>(null);
@@ -68,7 +68,7 @@ const Navbar = () => {
               >
                 <div className="w-10 rounded-full">
                   <Image
-                    src={profileImage || "/placeholder.jpg"}
+                    src={profileImage || placeholder.src}
                     alt="Profile"
                     width={40}
                     height={40}

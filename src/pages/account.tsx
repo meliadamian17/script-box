@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/router";
 import PreferencesSection from "@/components/UserPreferences";
+import placeholder from "../../public/images/profile/default.jpg"
 
 interface Template {
   id: number;
@@ -151,7 +152,7 @@ const ProfilePage = () => {
             <div className="flex items-center">
               <div className="avatar">
                 <div className="w-24 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
-                  <img src={userDetails.profileImage || "/placeholder.jpg"} alt="Profile" />
+                  <img src={userDetails.profileImage || placeholder.src} alt="Profile" />
                 </div>
               </div>
               <div className="ml-6">
