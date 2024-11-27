@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+
 
 const CreatePost = () => {
+  const router = useRouter();
+
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [content, setContent] = useState("");
@@ -8,7 +12,7 @@ const CreatePost = () => {
   const [template, setTemplate] = useState("");
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [templateSuggestions, setTemplateSuggestions] = useState<any[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false); 
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -36,19 +40,19 @@ const CreatePost = () => {
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create the post.");
+      if (response.ok) {
+        const newPost = await response.json()
+        router.push(`/blogs/${newPost.id}`)
+        setSuccess(true);
+
+        setTitle("");
+        setDescription("");
+        setContent("");
+        setTags([]);
+        setTemplate("");
+
       }
 
-      await response.json();
-      setSuccess(true);
-
-      setTitle("");
-      setDescription("");
-      setContent("");
-      setTags([]);
-      setTemplate("");
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred.");
     } finally {
@@ -80,7 +84,7 @@ const CreatePost = () => {
       const res = await fetch(`/api/templates?title=${query}`);
       const data = await res.json();
       setTemplateSuggestions(data.templates || []);
-      setShowSuggestions(true); 
+      setShowSuggestions(true);
     } catch (error) {
       console.error("Error fetching template suggestions:", error);
     } finally {
@@ -93,7 +97,7 @@ const CreatePost = () => {
       fetchTemplates(template);
     } else {
       setTemplateSuggestions([]);
-      setShowSuggestions(false); 
+      setShowSuggestions(false);
     }
   }, [template]);
 
@@ -183,13 +187,13 @@ const CreatePost = () => {
             className="input input-bordered w-full"
             value={template}
             onChange={(e) => setTemplate(e.target.value)}
-            onFocus={() => setShowSuggestions(true)} 
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} 
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
           />
           {showSuggestions && templateSuggestions.length > 0 && (
             <ul
               className="absolute bg-base-100 border border-gray-300 mt-1 max-h-40 overflow-y-auto w-full z-10"
-              style={{ top: "100%", left: 0 }} 
+              style={{ top: "100%", left: 0 }}
             >
               {templateSuggestions.map((suggestion, index) => (
                 <li
@@ -197,7 +201,7 @@ const CreatePost = () => {
                   className="p-2 hover:bg-gray-200 cursor-pointer"
                   onClick={() => {
                     setTemplate(suggestion.title);
-                    setShowSuggestions(false); 
+                    setShowSuggestions(false);
                   }}
                 >
                   {suggestion.title}
@@ -209,9 +213,8 @@ const CreatePost = () => {
 
         <button
           type="submit"
-          className={`btn btn-primary absolute top-[-4rem] right-0 ${
-            isLoading ? "loading" : ""
-          }`}
+          className={`btn btn-primary absolute top-[-4rem] right-0 ${isLoading ? "loading" : ""
+            }`}
         >
           {isLoading ? "Submitting..." : "Create Post"}
         </button>

@@ -8,16 +8,22 @@ export const getPost = checkAuth(async (req, res) => {
   const post = await prisma.blogPost.findUnique({
     where: { id: parseInt(id) },
     include: {
-          author: {
-            select: {
-              firstName: true,
-              lastName: true,
-              profileImage: true,
-            },
-          },
+      author: {
+        select: {
+          firstName: true,
+          lastName: true,
+          profileImage: true,
         },
+      },
+      ratings: {
+        select: {
+          userId: true,
+          value: true,
+        },
+      },
+    },
   });
-  return res.status(200).json({post, userId});
+  return res.status(200).json({ post, userId });
 });
 
 export const updatePost = checkAuth(async (req, res) => {
@@ -26,9 +32,9 @@ export const updatePost = checkAuth(async (req, res) => {
   const userId = req.user?.userId;
   console.log(id);
   const tagsArray = Array.isArray(tags) ? tags : [];
-  const uniqTags = [...new Set(tagsArray)]; 
+  const uniqTags = [...new Set(tagsArray)];
 
-  const tagsString = uniqTags.join(",");  
+  const tagsString = uniqTags.join(",");
 
   const post = await prisma.blogPost.findUnique({
     where: {
@@ -53,9 +59,9 @@ export const updatePost = checkAuth(async (req, res) => {
       description,
       content,
       tags: tagsString,
-      rating,  // If rating needs to be 0, include it here
-      authorId: userId,  // Assuming the user is logged in and `userId` is valid
-      templates  // Include the template if necessary
+      rating, // If rating needs to be 0, include it here
+      authorId: userId, // Assuming the user is logged in and `userId` is valid
+      templates, // Include the template if necessary
     },
   });
 
@@ -94,11 +100,11 @@ export const getPosts = checkAuth(async (req, res) => {
   const userId = req.user?.userId;
 
   if (title) {
-    queryOptions.where.title = { contains: title }; 
+    queryOptions.where.title = { contains: title };
   }
 
   if (tags) {
-    const tagsArray = tags.split(","); 
+    const tagsArray = tags.split(",");
     queryOptions.where.tags = { hasSome: tagsArray };
   }
 
@@ -152,6 +158,12 @@ export const getPosts = checkAuth(async (req, res) => {
             profileImage: true,
           },
         },
+        ratings: {
+          select: {
+            userId: true,
+            value: true,
+          },
+        },
       },
     });
 
@@ -167,7 +179,7 @@ export const getPosts = checkAuth(async (req, res) => {
         totalItems,
         totalPages,
       },
-      userId
+      userId,
     });
   } catch (error) {
     res
@@ -177,28 +189,24 @@ export const getPosts = checkAuth(async (req, res) => {
 });
 
 export const createPost = checkAuth(async (req, res) => {
-  console.log('User:', req.user);
-  console.log("Reached controller")
+  console.log("User:", req.user);
+  console.log("Reached controller");
   const { title, description, content, tags, rating, templates } = req.body;
   const authorId = req.user?.userId;
-  console.log(authorId)
-  console.log('Incoming request body:', req.body);
-  console.log('Post ID: ', )
+  console.log(authorId);
+  console.log("Incoming request body:", req.body);
+  console.log("Post ID: ");
   if (!title || !description || !content || !authorId) {
     return res.status(400).json({ message: "Missing required fields." });
   }
 
-
-
-
   try {
     const tagsArray = Array.isArray(tags) ? tags : [];
-    const uniqTags = [...new Set(tagsArray)]; 
+    const uniqTags = [...new Set(tagsArray)];
 
+    const tagsString = uniqTags.join(",");
 
-    const tagsString = uniqTags.join(",");  
-    
-    console.log("TRY")
+    console.log("TRY");
     const post = await prisma.blogPost.create({
       data: {
         title,
@@ -210,11 +218,11 @@ export const createPost = checkAuth(async (req, res) => {
         templates,
       },
     });
-    console.log('Post ID: ', post.id);
+    console.log("Post ID: ", post.id);
 
     return res.status(201).json(post);
   } catch (error) {
-    console.log("catch")
+    console.log("catch");
     console.error(error);
     return res
       .status(500)

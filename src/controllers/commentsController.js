@@ -105,6 +105,7 @@ export const getComments = checkAuth(async (req, res) => {
           profileImage: true,
         },
       },
+      ratings: true,
     },
     skip,
     take,
