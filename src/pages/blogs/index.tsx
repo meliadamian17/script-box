@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import "tailwindcss/tailwind.css";
+import ReportModal from "@/components/Blogs/ReportModal"
+import SearchAndSort from "@/components/Blogs/SearchAndSort";
 
 interface BlogPost {
   id: number;
@@ -42,6 +43,7 @@ interface User {
   ratings: CommentRating[];
   postRatings: BlogPostRating[];
 }
+
 interface Template {
   id: number;
   title: string;
@@ -87,36 +89,51 @@ interface BlogPostRating {
   post: BlogPost;
   postId: number;
 
-
 }
+
+const sortOptions = {
+  "Rating: High to Low": "desc",
+  "Rating: Low to High": "asc",
+  "Most Reported": "reports",
+};
 
 export default function Posts() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [userId, setUserId] = useState<number | null>(null);
-  const [userRatings, setUserRatings] = useState<Record<number, number>>({}); // Store user ratings for posts
+  const [userRatings, setUserRatings] = useState<Record<number, number>>({});
   const [menuOpen, setMenuOpen] = useState<number | null>(null);
+  const [reportingPostId, setReportingPostId] = useState<number | null>(null);
+  const [sortBy, setSortBy] = useState<string>("desc"); // Default sort by "Top Rated"
+
   const router = useRouter();
 
-  const fetchPosts = async () => {
-    const response = await fetch("../api/posts/posts");
+  const fetchPosts = async (searchTerm = "", sort = sortBy) => {
+    const response = await fetch(`/api/posts/posts?title=${searchTerm}&sortBy=${sort}`);
     const data = await response.json();
     setPosts(data.posts);
     setUserId(data.userId);
 
-    // Map user ratings for easier access
     const ratings: Record<number, number> = {};
     data.posts.forEach((post: BlogPost) => {
       const userRating = post.ratings.find((rating) => rating.userId === data.userId);
       if (userRating) {
-        ratings[post.id] = userRating.value; // Store the user's rating for the post
+        ratings[post.id] = userRating.value;
       }
     });
     setUserRatings(ratings);
   };
 
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    fetchPosts("", sortBy);
+  }, [sortBy]);
+
+  const handleSearch = (searchTerm: string) => {
+    fetchPosts(searchTerm, sortBy);
+  };
+
+  const handleSort = (newSort: string) => {
+    setSortBy(newSort)
+  };
 
   const handleEdit = (postId: number) => {
     router.push(`blogs/edit/${postId}`);
@@ -124,22 +141,12 @@ export default function Posts() {
 
   const handlePostUpvote = async (postId: number) => {
     try {
-      const response = await fetch(`../api/posts/rate`, {
+      await fetch("/api/posts/rate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          postID: postId,
-          vote: 1,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postID: postId, vote: 1 }),
       });
-
-      if (response.ok) {
-        await fetchPosts();
-      } else {
-        console.error("Failed to upvote");
-      }
+      fetchPosts();
     } catch (error) {
       console.error("Error upvoting post", error);
     }
@@ -147,46 +154,57 @@ export default function Posts() {
 
   const handlePostDownvote = async (postId: number) => {
     try {
-      const response = await fetch(`../api/posts/rate`, {
+      await fetch("/api/posts/rate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          postID: postId,
-          vote: -1,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postID: postId, vote: -1 }),
       });
-
-      if (response.ok) {
-        await fetchPosts();
-      } else {
-        console.error("Failed to downvote");
-      }
+      fetchPosts();
     } catch (error) {
       console.error("Error downvoting post", error);
     }
   };
 
   const deletePost = async (id: number) => {
-    const response = await fetch(`../api/posts/${id}`, {
-      method: "DELETE",
-    });
+    await fetch(`../api/posts/${id}`, { method: "DELETE" });
     fetchPosts();
   };
 
-  const toggleMenu = (postId: number) => {
-    setMenuOpen((prev) => (prev === postId ? null : postId));
+  const handleReport = async (reason: string) => {
+    if (!reportingPostId) return;
+    try {
+      await fetch("../api/posts/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          blogPostId: reportingPostId,
+          reason,
+          itemType: "POST",
+        }),
+      });
+      setReportingPostId(null);
+      alert("Post reported successfully.");
+    } catch (error) {
+      console.error("Error reporting post:", error);
+    }
   };
 
   return (
     <div id="blogs_page" className="p-8 bg-base-100 min-h-screen">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Blog Posts</h1>
-        <a href="../blogs/create">
-          <button className="btn btn-primary">New Post</button>
-        </a>
+        <h1
+          className="text-3xl font-bold"
+        >Blog Posts</h1>
+        <button onClick={() => router.push(`/blogs/create`)}
+          className="btn btn-primary">New Post</button>
       </div>
+
+      <SearchAndSort
+        onSearch={handleSearch}
+        onSort={handleSort}
+        sortOptions={sortOptions}
+        defaultSort="Rating: High to Low"
+      />
 
       <div className="space-y-6">
         {posts.map((post) => (
@@ -197,14 +215,14 @@ export default function Posts() {
             <div className="absolute top-4 right-4">
               <button
                 className="btn btn-circle btn-sm"
-                onClick={() => toggleMenu(post.id)}
+                onClick={() => setMenuOpen((prev) => (prev === post.id ? null : post.id))}
               >
                 ⋮
               </button>
               {menuOpen === post.id && (
                 <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-10">
                   {post.authorId === userId && (
-                    <div className="owner-rights">
+                    <>
                       <button
                         className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                         onClick={() => handleEdit(post.id)}
@@ -220,12 +238,11 @@ export default function Posts() {
                       >
                         Delete
                       </button>
-                    </div>
+                    </>
                   )}
-
                   <button
                     className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
-                    onClick={() => console.log("report")}
+                    onClick={() => setReportingPostId(post.id)}
                   >
                     Report
                   </button>
@@ -236,9 +253,7 @@ export default function Posts() {
             <div className="flex-shrink-0">
               <div className="flex flex-col items-center space-y-2">
                 <button
-                  className={`btn btn-sm ${userRatings[post.id] === 1
-                      ? "btn-success"
-                      : "btn-outline btn-success"
+                  className={`btn btn-sm ${userRatings[post.id] === 1 ? "btn-success" : "btn-outline btn-success"
                     }`}
                   onClick={() => handlePostUpvote(post.id)}
                 >
@@ -246,9 +261,7 @@ export default function Posts() {
                 </button>
                 <p className="font-semibold text-xl">{post.rating}</p>
                 <button
-                  className={`btn btn-sm ${userRatings[post.id] === -1
-                      ? "btn-error"
-                      : "btn-outline btn-error"
+                  className={`btn btn-sm ${userRatings[post.id] === -1 ? "btn-error" : "btn-outline btn-error"
                     }`}
                   onClick={() => handlePostDownvote(post.id)}
                 >
@@ -258,32 +271,54 @@ export default function Posts() {
             </div>
 
             <div className="flex-grow pl-6">
-              <h2 className="text-2xl font-semibold">
-                <a href={`../blogs/${post.id}`}>{post.title}</a>
-              </h2>
-              <p className="text-gray-600 mb-4">{post.description}</p>
+              <div className="flex items-center mb-4">
+                {post.author.profileImage && (
+                  <img
+                    src={post.author.profileImage}
+                    alt={`${post.author.firstName} ${post.author.lastName}`}
+                    className="w-12 h-12 rounded-full mr-4"
+                  />
+                )}
+                <div>
+                  <h2 className="text-2xl font-semibold cursor-pointer hover:underline"
+                    onClick={() => router.push(`blogs/${post.id}`)}
+                  >
+                    <p>{post.title}</p>
+                  </h2>
+                  <p className="text-gray-600">{post.description}</p>
+                </div>
+              </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
-                {post.tags.split(",").map((tag, index) => (
-                  <span
-                    key={index}
-                    className="badge badge-primary badge-outline text-sm"
-                  >
-                    {tag.trim()}
-                  </span>
-                ))}
+
+                {post.tags.length > 0 &&
+                  post.tags.split(",").map((tag, index) => (
+                    <span
+                      key={index}
+                      className="badge badge-primary badge-outline text-sm"
+                    >
+                      {tag.trim()}
+                    </span>
+                  ))}
+
               </div>
 
               <p className="text-sm text-gray-500">
                 By: {post.author.firstName} {post.author.lastName}
               </p>
               <p className="text-sm text-gray-400">
-                Published: {new Date(post.createdAt).toLocaleDateString()}
+                Published: {new Date(post.createdAt).toLocaleString()}
               </p>
             </div>
           </div>
         ))}
       </div>
+
+      <ReportModal
+        isOpen={!!reportingPostId}
+        onClose={() => setReportingPostId(null)}
+        onSubmit={handleReport}
+      />
     </div>
   );
 }

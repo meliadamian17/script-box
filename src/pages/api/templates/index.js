@@ -39,6 +39,11 @@ const handler = async (req, res) => {
         ];
       }
 
+      if (req.query.ids) {
+        const ids = req.query.ids.split(",").map((id) => parseInt(id, 10));
+        queryOptions.where.id = { in: ids };
+      }
+
       if (ownedByUser === "true") {
         if (!userId) {
           return res

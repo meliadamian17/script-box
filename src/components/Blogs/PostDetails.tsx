@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useRouter } from "next/router";
 
 const PostDetails = ({ post, userId, onVote }) => {
+  const router = useRouter()
   const handleVote = async (vote) => {
     try {
       const response = await fetch(`/api/posts/rate`, {
@@ -15,6 +17,14 @@ const PostDetails = ({ post, userId, onVote }) => {
       console.error("Error voting post", error);
     }
   };
+
+  const handleTemplateClick = (templateId: number) => {
+    router.push(`/templates/view/${templateId}`);
+  };
+
+  useEffect(() => {
+    console.log(post.templates)
+  }, [])
 
   const userPostRating = post.ratings.find((rating) => rating.userId === userId)?.value;
 
@@ -51,6 +61,25 @@ const PostDetails = ({ post, userId, onVote }) => {
               </span>
             ))}
           </div>
+
+          {/* Templates Section */}
+          {post.templates?.length > 0 && (
+            <div className="mt-6">
+              <h2 className="text-xl font-semibold text-base-primary mb-2">Associated Templates</h2>
+              <ul className="list-disc ml-6">
+                {post.templates.map((template) => (
+
+                  <li
+                    key={template.id}
+                    className="text-secondary hover:underline cursor-pointer"
+                    onClick={() => handleTemplateClick(template.id)}
+                  >
+                    {template.title} (Language: {template.language})
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     </div>

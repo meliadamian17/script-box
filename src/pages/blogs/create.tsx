@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-
 
 const CreatePost = () => {
   const router = useRouter();
@@ -10,13 +9,11 @@ const CreatePost = () => {
   const [content, setContent] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [template, setTemplate] = useState("");
-  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [selectedTemplates, setSelectedTemplates] = useState<any[]>([]);
   const [templateSuggestions, setTemplateSuggestions] = useState<any[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [duplicateError, setDuplicateError] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,24 +32,18 @@ const CreatePost = () => {
           description,
           content,
           tags,
-          template,
           rating: 0,
+          templates: selectedTemplates.map((t) => t.id),
         }),
       });
 
       if (response.ok) {
-        const newPost = await response.json()
-        router.push(`/blogs/${newPost.id}`)
-        setSuccess(true);
-
-        setTitle("");
-        setDescription("");
-        setContent("");
-        setTags([]);
-        setTemplate("");
-
+        const newPost = await response.json();
+        router.push(`/blogs/${newPost.id}`);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || "An unexpected error occurred.");
       }
-
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred.");
     } finally {
@@ -60,52 +51,56 @@ const CreatePost = () => {
     }
   };
 
-  const handleTagInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      const input = e.currentTarget.value.trim();
-      if (input && !tags.includes(input)) {
-        setTags([...tags, input]);
-        setDuplicateError(false);
-      } else {
-        setDuplicateError(true);
-      }
-      e.currentTarget.value = "";
-      e.preventDefault();
-    }
-  };
-
-  const removeTag = (tag: string) => {
-    setTags(tags.filter((t) => t !== tag));
-  };
-
   const fetchTemplates = async (query: string) => {
-    setLoadingSuggestions(true);
     try {
       const res = await fetch(`/api/templates?title=${query}`);
       const data = await res.json();
       setTemplateSuggestions(data.templates || []);
-      setShowSuggestions(true);
     } catch (error) {
-      console.error("Error fetching template suggestions:", error);
-    } finally {
-      setLoadingSuggestions(false);
+      console.error("Error fetching templates:", error);
     }
   };
+
+  const handleAddTemplate = (template) => {
+    if (!selectedTemplates.some((t) => t.id === template.id)) {
+      setSelectedTemplates([...selectedTemplates, template]);
+    }
+    setTemplate("");
+    setTemplateSuggestions([]);
+  };
+
+  const handleRemoveTemplate = (templateId) => {
+    setSelectedTemplates(selectedTemplates.filter((t) => t.id !== templateId));
+  };
+
+  useEffect(() => {
+    const templates = router.query.templates ? JSON.parse(router.query.templates as string) : [];
+    const fetchLinkedTemplates = async () => {
+      try {
+        const res = await fetch(`/api/templates?ids=${templates.join(",")}`);
+        const data = await res.json();
+        setSelectedTemplates(data.templates || []);
+      } catch (error) {
+        console.error("Error fetching linked templates:", error);
+      }
+    };
+
+    if (templates.length > 0) {
+      fetchLinkedTemplates();
+    }
+  }, [router.query.templates]);
 
   useEffect(() => {
     if (template) {
       fetchTemplates(template);
     } else {
       setTemplateSuggestions([]);
-      setShowSuggestions(false);
     }
   }, [template]);
 
   return (
-    <div className="max-w-xl mx-auto p-6 bg-base-100 shadow-lg rounded-lg mt-6 relative">
-      <h1 className="text-2xl font-bold text-center mb-6 ml-[-5]">
-        Create New Blog Post
-      </h1>
+    <div className="max-w-xl mx-auto p-6 bg-base-100 shadow-lg rounded-lg mt-6">
+      <h1 className="text-2xl font-bold text-center mb-6">Create New Blog Post</h1>
 
       {error && <p className="text-error text-center mb-4">{error}</p>}
       {success && (
@@ -113,13 +108,9 @@ const CreatePost = () => {
           Post created successfully!
         </p>
       )}
-      {duplicateError && (
-        <p className="text-error text-center mb-4">
-          Duplicate tags are not allowed!
-        </p>
-      )}
 
-      <form onSubmit={handleSubmit} className="space-y-4 relative">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Title */}
         <div className="form-control">
           <label className="label">
             <span className="label-text">Title</span>
@@ -132,6 +123,8 @@ const CreatePost = () => {
             required
           />
         </div>
+
+        {/* Description */}
         <div className="form-control">
           <label className="label">
             <span className="label-text">Description</span>
@@ -143,6 +136,8 @@ const CreatePost = () => {
             required
           ></textarea>
         </div>
+
+        {/* Content */}
         <div className="form-control">
           <label className="label">
             <span className="label-text">Content</span>
@@ -155,66 +150,82 @@ const CreatePost = () => {
           ></textarea>
         </div>
 
+        {/* Tags */}
         <div className="form-control">
           <label className="label">
             <span className="label-text">Tags</span>
           </label>
-          <div className="flex flex-wrap gap-2 mb-4">
+          <input
+            type="text"
+            placeholder="Press Enter to add tags"
+            className="input input-bordered w-full"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                const value = e.currentTarget.value.trim();
+                if (value && !tags.includes(value)) {
+                  setTags([...tags, value]);
+                }
+                e.currentTarget.value = "";
+              }
+            }}
+          />
+          <div className="flex flex-wrap gap-2 mt-2">
             {tags.map((tag, index) => (
               <span
                 key={index}
                 className="badge badge-primary badge-outline cursor-pointer"
-                onClick={() => removeTag(tag)}
+                onClick={() => setTags(tags.filter((t) => t !== tag))}
               >
                 {tag} <span className="ml-2 text-sm">x</span>
               </span>
             ))}
           </div>
-          <input
-            type="text"
-            placeholder="Press Enter to add tags"
-            className="input input-bordered w-full focus:outline-none"
-            onKeyDown={handleTagInput}
-          />
         </div>
 
+        {/* Templates */}
         <div className="form-control">
           <label className="label">
-            <span className="label-text">Template</span>
+            <span className="label-text">Add Templates</span>
           </label>
           <input
             type="text"
             className="input input-bordered w-full"
             value={template}
             onChange={(e) => setTemplate(e.target.value)}
-            onFocus={() => setShowSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
           />
-          {showSuggestions && templateSuggestions.length > 0 && (
-            <ul
-              className="absolute bg-base-100 border border-gray-300 mt-1 max-h-40 overflow-y-auto w-full z-10"
-              style={{ top: "100%", left: 0 }}
-            >
-              {templateSuggestions.map((suggestion, index) => (
+          {templateSuggestions.length > 0 && (
+            <ul className="bg-white border mt-1 shadow-md rounded max-h-40 overflow-y-auto">
+              {templateSuggestions.map((template) => (
                 <li
-                  key={index}
-                  className="p-2 hover:bg-gray-200 cursor-pointer"
-                  onClick={() => {
-                    setTemplate(suggestion.title);
-                    setShowSuggestions(false);
-                  }}
+                  key={template.id}
+                  className="p-2 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleAddTemplate(template)}
                 >
-                  {suggestion.title}
+                  <span className="font-bold">{template.title}</span> -{" "}
+                  <span className="italic">{template.language}</span> by{" "}
+                  <span>{template.user.firstName} {template.user.lastName}</span>
                 </li>
               ))}
             </ul>
           )}
+          <div className="mt-2 flex flex-wrap gap-2">
+            {selectedTemplates.map((template) => (
+              <span
+                key={template.id}
+                className="badge badge-secondary badge-outline cursor-pointer"
+                onClick={() => handleRemoveTemplate(template.id)}
+              >
+                {template.title} <span className="ml-2 text-sm">x</span>
+              </span>
+            ))}
+          </div>
         </div>
 
+        {/* Submit Button */}
         <button
           type="submit"
-          className={`btn btn-primary absolute top-[-4rem] right-0 ${isLoading ? "loading" : ""
-            }`}
+          className={`btn btn-primary w-full ${isLoading ? "loading" : ""}`}
         >
           {isLoading ? "Submitting..." : "Create Post"}
         </button>
@@ -224,3 +235,4 @@ const CreatePost = () => {
 };
 
 export default CreatePost;
+

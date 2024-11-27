@@ -21,8 +21,16 @@ export const getPost = checkAuth(async (req, res) => {
           value: true,
         },
       },
+      templates: {
+        select: {
+          id: true,
+          title: true,
+          language: true,
+        },
+      },
     },
   });
+  console.log(post);
   return res.status(200).json({ post, userId });
 });
 
@@ -195,6 +203,7 @@ export const createPost = checkAuth(async (req, res) => {
   const authorId = req.user?.userId;
   console.log(authorId);
   console.log("Incoming request body:", req.body);
+  console.log("Templates:", templates);
   console.log("Post ID: ");
   if (!title || !description || !content || !authorId) {
     return res.status(400).json({ message: "Missing required fields." });
@@ -215,7 +224,12 @@ export const createPost = checkAuth(async (req, res) => {
         tags: tagsString,
         rating,
         authorId,
-        templates,
+        templates: {
+          connect: templates.map((id) => ({ id })),
+        },
+      },
+      include: {
+        templates: true,
       },
     });
     console.log("Post ID: ", post.id);

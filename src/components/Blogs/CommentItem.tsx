@@ -11,6 +11,7 @@ const CommentItem = ({ comment, userId, onVote, onDelete, onUpdateReplyCount }) 
   const [replies, setReplies] = useState(comment.replies || []);
   const [replyText, setReplyText] = useState("");
   const [showReplyBox, setShowReplyBox] = useState(false);
+
   const dropdownRef = useRef(null);
 
   // Close dropdown when clicking outside
@@ -146,7 +147,7 @@ const CommentItem = ({ comment, userId, onVote, onDelete, onUpdateReplyCount }) 
           <p className="text-base-content mb-2">{comment.content}</p>
           <p className="text-sm text-base-primary mb-4">
             By {comment.user.firstName} {comment.user.lastName} |{" "}
-            {new Date(comment.createdAt).toLocaleDateString()}
+            {new Date(comment.createdAt).toLocaleString(undefined, { timeZone: "EST" })}
           </p>
         </>
       )}

@@ -141,10 +141,8 @@ export default function Post() {
 
   return (
     <div className="bg-base-100 py-8 px-4 min-h-screen">
-      {/* Post Details */}
       <PostDetails post={post} userId={userId} onVote={fetchPost} />
 
-      {/* Comments Section */}
       <CommentsSection postId={postId} userId={userId} />
     </div>
   );

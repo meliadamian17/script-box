@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from "react";
 import CommentItem from "@/components/Blogs/CommentItem";
-import SearchAndSort from "./SearchAndSort";
 
-const sortOptions: Record<string, string> = {
+const sortOptions = {
   "Rating: High to Low": "desc",
   "Rating: Low to High": "asc",
-  "Recent": "",
+  "Recent": null,
   "Most Reported": "reports",
-}
+};
 
 const CommentsSection = ({ postId, userId }) => {
-  const [comments, setComments] = useState([]); // Initialize as an empty array
+  const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState("");
-  const [sortBy, setSortBy] = useState(sortOptions["Recent"])
+  const [sortBy, setSortBy] = useState("recent");
+
   useEffect(() => {
     fetchComments(sortBy);
   }, [postId, sortBy]);
 
-  const fetchComments = async (sortBy = "") => {
+  const fetchComments = async (sortBy = "recent") => {
     const response = await fetch(`/api/comments/comments?postID=${postId}&sortBy=${sortBy}`);
     if (response.ok) {
       const data = await response.json();
@@ -35,8 +35,12 @@ const CommentsSection = ({ postId, userId }) => {
     });
     if (response.ok) {
       setCommentText("");
-      fetchComments();
+      fetchComments(sortBy);
     }
+  };
+
+  const handleSortChange = (e) => {
+    setSortBy(e.target.value);
   };
 
   const updateReplyCount = (commentId, increment) => {
@@ -54,16 +58,10 @@ const CommentsSection = ({ postId, userId }) => {
     setComments((prevComments) => updateNestedReplies(prevComments));
   };
 
-  const handleSort = (newSort: string) => {
-    setSortBy(newSort)
-  };
-
-
-
   return (
     <div className="bg-base-200 shadow-md rounded-lg p-8">
       <h2 className="text-2xl font-bold mb-6">Comments</h2>
-      <div className="flex items-start space-x-4 mb-6">
+      <div className="flex justify-between items-center mb-6">
         <textarea
           value={commentText}
           onChange={(e) => setCommentText(e.target.value)}
@@ -74,20 +72,26 @@ const CommentsSection = ({ postId, userId }) => {
         <button className="btn btn-primary" onClick={handleSubmitComment}>
           Submit
         </button>
+        <select
+          value={sortBy}
+          onChange={handleSortChange}
+          className="select select-bordered"
+        >
+          {Object.keys(sortOptions).map((key) => (
+            <option key={key} value={sortOptions[key]}>
+              {key}
+            </option>
+          ))}
+        </select>
       </div>
-      <SearchAndSort
-        onSort={handleSort}
-        sortOptions={sortOptions}
-        defaultSort={"Recent"}
-      />
       {comments.length > 0 ? (
         comments.map((comment) => (
           <CommentItem
             key={comment.id}
             comment={comment}
             userId={userId}
-            onVote={fetchComments}
-            onDelete={fetchComments}
+            onVote={() => fetchComments(sortBy)}
+            onDelete={() => fetchComments(sortBy)}
             onUpdateReplyCount={updateReplyCount}
           />
         ))
@@ -99,4 +103,5 @@ const CommentsSection = ({ postId, userId }) => {
 };
 
 export default CommentsSection;
+
 
