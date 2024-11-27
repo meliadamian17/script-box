@@ -4,10 +4,20 @@ import { checkAuth } from "../utils/middleware";
 
 export const getPost = checkAuth(async (req, res) => {
   const { id } = req.query;
+  const userId = req.user?.userId;
   const post = await prisma.blogPost.findUnique({
     where: { id: parseInt(id) },
+    include: {
+          author: {
+            select: {
+              firstName: true,
+              lastName: true,
+              profileImage: true,
+            },
+          },
+        },
   });
-  return res.status(200).json(post);
+  return res.status(200).json({post, userId});
 });
 
 export const updatePost = checkAuth(async (req, res) => {
@@ -103,19 +113,20 @@ export const getPosts = checkAuth(async (req, res) => {
   ];
 
   if (sortBy) {
+    console.log(req.user);
     if (sortBy === "reports") {
       if (req.user?.role !== "ADMIN") {
         return res
           .status(403)
-          .json({ message: "Only ADMIN can filter by reports" });
+          .json({ message: "Only ADMIN can filter by reports." });
       }
-      queryOptions.orderBy = {
-        reports: {
-          _count: "desc",
-        },
-      };
+      queryOptions.orderBy = { reports: { _count: "desc" } };
+    } else if (["asc", "desc"].includes(sortBy)) {
+      queryOptions.orderBy = { rating: sortBy };
     } else {
-      queryOptions.orderBy.rating = sortBy;
+      return res.status(400).json({
+        message: "Invalid sortBy value. Use 'asc', 'desc', or 'reports'.",
+      });
     }
   }
 

@@ -85,7 +85,9 @@ interface BlogPostRating {
   post: BlogPost;
   postId: number;
 
+
 }
+
 export default function Posts() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [menuOpen, setMenuOpen] = useState<number | null>(null);
@@ -101,6 +103,51 @@ export default function Posts() {
     fetchPosts();
   }, []);
 
+  const handlePostUpvote = async (postId: number) => {
+    try {
+      const response = await fetch(`../api/posts/rate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          'postID':postId, 
+          'vote': 1, 
+        }),
+      });
+  
+      if (response.ok) {
+        await fetchPosts();
+      } else {
+        console.error("Failed to upvote");
+      }
+    } catch (error) {
+      console.error("Error upvoting post", error);
+    }
+  };
+
+  const handlePostDownvote = async (postId: number) => {
+    try {
+      const response = await fetch(`../api/posts/rate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ 
+          'postID':postId, 
+          'vote': -1, 
+        }),
+      });
+  
+      if (response.ok) {
+        await fetchPosts();
+      } else {
+        console.error("Failed to upvote");
+      }
+    } catch (error) {
+      console.error("Error upvoting post", error);
+    }
+  };
   const deletePost = async (id: number) => {
     const response = await fetch(`../api/posts/${id}`, {
       method: 'DELETE',
@@ -171,11 +218,16 @@ export default function Posts() {
 
             <div className="flex-shrink-0">
               <div className="flex flex-col items-center space-y-2">
-                <button className="btn btn-sm btn-outline btn-success">
+                <button 
+                className="btn btn-sm btn-outline btn-success"
+                onClick={() => handlePostUpvote(post.id)}
+                >
                   ▲
                 </button>
                 <p className="font-semibold text-xl">{post.rating}</p>
-                <button className="btn btn-sm btn-outline btn-error">
+                <button 
+                className="btn btn-sm btn-outline btn-error"
+                onClick={() => handlePostDownvote(post.id)}>
                   ▼
                 </button>
               </div>
@@ -207,11 +259,6 @@ export default function Posts() {
                 Published: {new Date(post.createdAt).toLocaleDateString()}
               </p>
 
-              <div className="mt-4">
-                <button className="btn btn-link text-sm">
-                  Comments
-                </button>
-              </div>
             </div>
           </div>
         ))}

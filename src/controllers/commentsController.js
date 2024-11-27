@@ -41,7 +41,7 @@ export const deleteComment = checkAuth(async (req, res) => {
 
   const comment = await prisma.comment.findUnique({
     where: { id: parseInt(id) },
-    select: { userId: true },
+    // select: { userId: true },
   });
 
   if (!comment) {
@@ -72,19 +72,19 @@ export const getComments = checkAuth(async (req, res) => {
 
   if (sortBy) {
     console.log(req.user);
-    if (sortBy == "reports") {
+    if (sortBy === "reports") {
       if (req.user?.role !== "ADMIN") {
         return res
           .status(403)
-          .json({ message: "Can Only Filter By Reports if ADMIN" });
+          .json({ message: "Only ADMIN can filter by reports." });
       }
-      queryOptions.orderBy = {
-        reports: {
-          _count: "desc",
-        },
-      };
+      queryOptions.orderBy = { reports: { _count: "desc" } };
+    } else if (["asc", "desc"].includes(sortBy)) {
+      queryOptions.orderBy = { rating: sortBy };
     } else {
-      queryOptions.orderBy.rating = sortBy;
+      return res.status(400).json({
+        message: "Invalid sortBy value. Use 'asc', 'desc', or 'reports'.",
+      });
     }
   }
 
@@ -97,6 +97,15 @@ export const getComments = checkAuth(async (req, res) => {
 
   const comments = await prisma.comment.findMany({
     ...queryOptions,
+    include: {
+      user: {
+        select: {
+          firstName: true,
+          lastName: true,
+          profileImage: true,
+        },
+      },
+    },
     skip,
     take,
   });
@@ -117,11 +126,11 @@ export const getComments = checkAuth(async (req, res) => {
 });
 
 export const createPostComment = checkAuth(async (req, res) => {
-  const { content, postID } = req.body;
+  const { content, blogPostId } = req.body;
   const userId = req.user?.userId;
 
   const postExists = await prisma.blogPost.findUnique({
-    where: { id: parseInt(postID) },
+    where: { id: parseInt(blogPostId) },
   });
 
   if (!postExists) {
@@ -132,7 +141,7 @@ export const createPostComment = checkAuth(async (req, res) => {
     data: {
       content,
       userId,
-      blogPostId: parseInt(postID),
+      blogPostId: parseInt(blogPostId),
     },
   });
 
