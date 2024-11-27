@@ -98,48 +98,60 @@ const sortOptions = {
 };
 
 export default function Posts() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [userId, setUserId] = useState<number | null>(null);
-  const [userRatings, setUserRatings] = useState<Record<number, number>>({});
-  const [menuOpen, setMenuOpen] = useState<number | null>(null);
-  const [reportingPostId, setReportingPostId] = useState<number | null>(null);
-  const [sortBy, setSortBy] = useState<string>("desc"); // Default sort by "Top Rated"
+  const [posts, setPosts] = useState([]);
+  const [userId, setUserId] = useState(null);
+  const [userRatings, setUserRatings] = useState({});
+  const [menuOpen, setMenuOpen] = useState(null);
+  const [reportingPostId, setReportingPostId] = useState(null);
+  const [sortBy, setSortBy] = useState("desc");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
+  const [totalPages, setTotalPages] = useState(1);
 
   const router = useRouter();
 
-  const fetchPosts = async (searchTerm = "", sort = sortBy) => {
-    const response = await fetch(`/api/posts/posts?title=${searchTerm}&sortBy=${sort}`);
+  const fetchPosts = async (searchTerm = "", sort = sortBy, page = currentPage, limit = pageSize) => {
+    const response = await fetch(
+      `/api/posts/posts?title=${encodeURIComponent(searchTerm)}&sortBy=${sort}&page=${page}&limit=${limit}`
+    );
     const data = await response.json();
     setPosts(data.posts);
     setUserId(data.userId);
 
-    const ratings: Record<number, number> = {};
-    data.posts.forEach((post: BlogPost) => {
+    const ratings = {};
+    data.posts.forEach((post) => {
       const userRating = post.ratings.find((rating) => rating.userId === data.userId);
       if (userRating) {
         ratings[post.id] = userRating.value;
       }
     });
     setUserRatings(ratings);
+
+    if (data.pagination) {
+      setTotalPages(data.pagination.totalPages);
+    }
   };
 
   useEffect(() => {
-    fetchPosts("", sortBy);
-  }, [sortBy]);
+    fetchPosts("", sortBy, currentPage, pageSize);
+  }, [sortBy, currentPage]);
 
-  const handleSearch = (searchTerm: string) => {
-    fetchPosts(searchTerm, sortBy);
+  const handleSearch = (searchTerm) => {
+    setCurrentPage(1);
+    fetchPosts(searchTerm, sortBy, 1, pageSize);
   };
 
-  const handleSort = (newSort: string) => {
-    setSortBy(newSort)
+  const handleSort = (newSort) => {
+    setSortBy(newSort);
+    setCurrentPage(1);
   };
 
-  const handleEdit = (postId: number) => {
+  const handleEdit = (postId) => {
     router.push(`blogs/edit/${postId}`);
   };
 
-  const handlePostUpvote = async (postId: number) => {
+  const handlePostUpvote = async (postId) => {
     try {
       await fetch("/api/posts/rate", {
         method: "POST",
@@ -152,7 +164,7 @@ export default function Posts() {
     }
   };
 
-  const handlePostDownvote = async (postId: number) => {
+  const handlePostDownvote = async (postId) => {
     try {
       await fetch("/api/posts/rate", {
         method: "POST",
@@ -165,12 +177,12 @@ export default function Posts() {
     }
   };
 
-  const deletePost = async (id: number) => {
+  const deletePost = async (id) => {
     await fetch(`../api/posts/${id}`, { method: "DELETE" });
     fetchPosts();
   };
 
-  const handleReport = async (reason: string) => {
+  const handleReport = async (reason) => {
     if (!reportingPostId) return;
     try {
       await fetch("../api/posts/report", {
@@ -192,11 +204,10 @@ export default function Posts() {
   return (
     <div id="blogs_page" className="p-8 bg-base-100 min-h-screen">
       <div className="flex justify-between items-center mb-8">
-        <h1
-          className="text-3xl font-bold"
-        >Blog Posts</h1>
-        <button onClick={() => router.push(`/blogs/create`)}
-          className="btn btn-primary">New Post</button>
+        <h1 className="text-3xl font-bold">Blog Posts</h1>
+        <button onClick={() => router.push(`/blogs/create`)} className="btn btn-primary">
+          New Post
+        </button>
       </div>
 
       <SearchAndSort
@@ -232,8 +243,7 @@ export default function Posts() {
                       <button
                         className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
                         onClick={() =>
-                          confirm("Are you sure you want to delete this post?") &&
-                          deletePost(post.id)
+                          confirm("Are you sure you want to delete this post?") && deletePost(post.id)
                         }
                       >
                         Delete
@@ -280,27 +290,23 @@ export default function Posts() {
                   />
                 )}
                 <div>
-                  <h2 className="text-2xl font-semibold cursor-pointer hover:underline"
+                  <h2
+                    className="text-2xl font-semibold cursor-pointer hover:underline"
                     onClick={() => router.push(`blogs/${post.id}`)}
                   >
-                    <p>{post.title}</p>
+                    {post.title}
                   </h2>
                   <p className="text-gray-600">{post.description}</p>
                 </div>
               </div>
 
               <div className="flex flex-wrap gap-2 mb-4">
-
                 {post.tags.length > 0 &&
                   post.tags.split(",").map((tag, index) => (
-                    <span
-                      key={index}
-                      className="badge badge-primary badge-outline text-sm"
-                    >
+                    <span key={index} className="badge badge-primary badge-outline text-sm">
                       {tag.trim()}
                     </span>
                   ))}
-
               </div>
 
               <p className="text-sm text-gray-500">
@@ -314,6 +320,27 @@ export default function Posts() {
         ))}
       </div>
 
+      {/* Pagination Controls */}
+      <div className="flex justify-center items-center mt-8">
+        <button
+          className="btn btn-secondary mr-4"
+          onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </button>
+        <span>
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          className="btn btn-secondary ml-4"
+          onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </button>
+      </div>
+
       <ReportModal
         isOpen={!!reportingPostId}
         onClose={() => setReportingPostId(null)}
@@ -322,4 +349,3 @@ export default function Posts() {
     </div>
   );
 }
-
