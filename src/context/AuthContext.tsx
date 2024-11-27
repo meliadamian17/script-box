@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 
 interface User {
   email: string;
+  role: string;
 }
 
 interface SignupData {
@@ -12,6 +13,7 @@ interface SignupData {
   firstName: string;
   lastName: string;
   profileImage?: File | null;
+  role?: string;
 }
 
 interface AuthContextType {
@@ -36,8 +38,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (res.ok) {
-      const { accessToken } = await res.json();
-      setUser({ email });
+      const { msg, at, rt, role } = await res.json();
+      setUser({ email, role });
       router.push("/");
     } else {
       throw new Error("Invalid credentials");
@@ -51,6 +53,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       formData.append("password", data.password);
       formData.append("firstName", data.firstName);
       formData.append("lastName", data.lastName);
+
+      if (data.role) {
+        formData.append("role", data.role)
+      }
 
       if (data.profileImage) {
         formData.append("profileImage", data.profileImage);
@@ -86,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const res = await fetch("/api/auth/refresh", { method: "POST" });
         if (res.ok) {
           const data = await res.json();
-          setUser({ email: data.email });
+          setUser({ email: data.email, role: data.role });
         }
       } catch (error) {
         console.error("Auto-login failed:", error);

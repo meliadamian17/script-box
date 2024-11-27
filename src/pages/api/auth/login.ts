@@ -35,9 +35,11 @@ export default async function handler(
       `refreshToken=${refreshToken}; HttpOnly; Path=/; Max-Age=604800`,
     ]);
 
+    const role = user.role;
+
     res
       .status(200)
-      .json({ message: "Login successful", accessToken, refreshToken });
+      .json({ message: "Login successful", accessToken, refreshToken, role });
   } catch (error) {
     res.status(500).json({ error: `Login failed: ${error}` });
   }

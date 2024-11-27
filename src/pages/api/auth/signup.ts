@@ -19,7 +19,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   try {
     const form = new IncomingForm();
-
     form.parse(req, async (err, fields, files) => {
       if (err) {
         console.error("Formidable error:", err);
@@ -30,6 +29,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       const lastName = String(fields.lastName || "");
       const email = String(fields.email || "");
       const password = String(fields.password || "");
+      const role = String(fields.role || "USER");
 
       if (!email || !password || !firstName || !lastName) {
         return res.status(400).json({ error: "All fields are required" });
@@ -76,6 +76,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
             email,
             password: hashedPassword,
             profileImage: profileImageUrl,
+            role: role,
+            preferences: {
+              create: {
+                defaultLanguage: "python",
+                defaultTheme: "dark",
+                enableVim: false,
+                relativeLineNumbers: false,
+              },
+            },
           },
         });
 
