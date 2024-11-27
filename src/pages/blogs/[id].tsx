@@ -119,7 +119,10 @@ export default function Post() {
     const response = await fetch(`../api/comments/${id}`, {
       method: 'DELETE',
     });
-    fetchComments();
+    if(response.ok){
+      await fetchComments();
+    }
+    
     
   };
   const handleCommentUpvote = async (commentId: number) => {

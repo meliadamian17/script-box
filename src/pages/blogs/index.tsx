@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import "tailwindcss/tailwind.css";
+
 interface BlogPost {
   id: number;
   title: string;
@@ -98,10 +100,14 @@ export default function Posts() {
     setPosts(data.posts);
     setUserId(data.userId)
   };
-
+  const router = useRouter();
   useEffect(() => {
     fetchPosts();
   }, []);
+  
+  const handleEdit = (postId: number) => {
+    router.push(`blogs//edit/${postId}`);
+  };
 
   const handlePostUpvote = async (postId: number) => {
     try {
@@ -193,7 +199,7 @@ export default function Posts() {
                     <div className = "owner-rights" >
                       <button
                         className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                        onClick={() => console.log(`Edit ${post.id}`)} 
+                        onClick={() => handleEdit(post.id)} 
                       >
                         Edit
                       </button>

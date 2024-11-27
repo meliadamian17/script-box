@@ -124,7 +124,7 @@ model CommentRating {
 
   user      User     @relation("UserRatings", fields: [userId], references: [id])
   userId    Int
-  comment   Comment  @relation("CommentRatings", fields: [commentId], references: [id])
+  comment   Comment  @relation("CommentRatings", fields: [commentId], references: [id], onDelete: Cascade)
   commentId Int
 
   @@unique([userId, commentId])
@@ -139,7 +139,7 @@ model Report {
   userId       Int
   blogPost     BlogPost? @relation(fields: [blogPostId], references: [id])
   blogPostId   Int?
-  comment      Comment?  @relation("CommentReport", fields: [commentId], references: [id])
+  comment      Comment?  @relation("CommentReport", fields: [commentId], references: [id], onDelete: Cascade)
   commentId    Int? @unique
 }
 

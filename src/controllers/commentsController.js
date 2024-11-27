@@ -41,7 +41,7 @@ export const deleteComment = checkAuth(async (req, res) => {
 
   const comment = await prisma.comment.findUnique({
     where: { id: parseInt(id) },
-    // select: { userId: true },
+    select: { userId: true },
   });
 
   if (!comment) {

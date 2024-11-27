@@ -21,10 +21,14 @@ export const getPost = checkAuth(async (req, res) => {
 });
 
 export const updatePost = checkAuth(async (req, res) => {
-  const { title, description, content, tags } = req.body;
+  const { title, description, content, tags, templates, rating } = req.body;
   const { id } = req.query;
   const userId = req.user?.userId;
   console.log(id);
+  const tagsArray = Array.isArray(tags) ? tags : [];
+  const uniqTags = [...new Set(tagsArray)]; 
+
+  const tagsString = uniqTags.join(",");  
 
   const post = await prisma.blogPost.findUnique({
     where: {
@@ -48,7 +52,10 @@ export const updatePost = checkAuth(async (req, res) => {
       title,
       description,
       content,
-      tags,
+      tags: tagsString,
+      rating,  // If rating needs to be 0, include it here
+      authorId: userId,  // Assuming the user is logged in and `userId` is valid
+      templates  // Include the template if necessary
     },
   });
 
