@@ -36,10 +36,17 @@ export default async function handler(
     ]);
 
     const role = user.role;
+    const id = user.id;
 
     res
       .status(200)
-      .json({ message: "Login successful", accessToken, refreshToken, role });
+      .json({
+        message: "Login successful",
+        accessToken,
+        refreshToken,
+        role,
+        id,
+      });
   } catch (error) {
     res.status(500).json({ error: `Login failed: ${error}` });
   }

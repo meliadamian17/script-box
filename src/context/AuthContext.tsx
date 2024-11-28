@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 interface User {
   email: string;
   role: string;
+  id: string;
 }
 
 interface SignupData {
@@ -38,8 +39,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (res.ok) {
-      const { msg, at, rt, role } = await res.json();
-      setUser({ email, role });
+      const { msg, at, rt, role, id } = await res.json();
+      setUser({ email, role, id });
       router.push("/");
     } else {
       throw new Error("Invalid credentials");

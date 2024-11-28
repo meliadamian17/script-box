@@ -1,8 +1,11 @@
 import React, { useEffect } from "react";
 import { useRouter } from "next/router";
+import { useAuth } from "@/context/AuthContext";
 
 const PostDetails = ({ post, userId, onVote }) => {
-  const router = useRouter()
+  const router = useRouter();
+  const { user } = useAuth();
+
   const handleVote = async (vote) => {
     try {
       const response = await fetch(`/api/posts/rate`, {
@@ -18,13 +21,34 @@ const PostDetails = ({ post, userId, onVote }) => {
     }
   };
 
-  const handleTemplateClick = (templateId: number) => {
-    router.push(`/templates/view/${templateId}`);
+  const handleTemplateClick = async (template) => {
+    if (user) {
+      if (user.id === template.userId) {
+        // User is the owner
+        router.push(`/templates/${template.id}`);
+      } else {
+        // User is not the owner
+        router.push(`/templates/view/${template.id}`);
+      }
+    } else {
+      // User is not logged in
+      router.push({
+        pathname: `/code`,
+        query: {
+          id: template.id,
+          title: template.title,
+          description: template.description,
+          language: template.language,
+          code: template.code,
+          tags: template.tags,
+        },
+      });
+    }
   };
 
   useEffect(() => {
-    console.log(post.templates)
-  }, [])
+    console.log(post.templates);
+  }, [post.templates]);
 
   const userPostRating = post.ratings.find((rating) => rating.userId === userId)?.value;
 
@@ -33,14 +57,16 @@ const PostDetails = ({ post, userId, onVote }) => {
       <div className="flex items-start">
         <div className="flex flex-col items-center mr-6">
           <button
-            className={`${userPostRating === 1 ? "text-green-500" : "text-gray-500"} hover:text-green-500`}
+            className={`${userPostRating === 1 ? "text-green-500" : "text-gray-500"
+              } hover:text-green-500`}
             onClick={() => handleVote(1)}
           >
             ▲
           </button>
           <p className="text-xl font-bold">{post.rating}</p>
           <button
-            className={`${userPostRating === -1 ? "text-red-500" : "text-gray-500"} hover:text-red-500`}
+            className={`${userPostRating === -1 ? "text-red-500" : "text-gray-500"
+              } hover:text-red-500`}
             onClick={() => handleVote(-1)}
           >
             ▼
@@ -56,7 +82,10 @@ const PostDetails = ({ post, userId, onVote }) => {
           <div className="text-base-content leading-relaxed">{post.content}</div>
           <div className="mt-4 flex flex-wrap gap-2">
             {post.tags.split(",").map((tag, index) => (
-              <span key={index} className="px-3 py-1 bg-base-100 text-base-content rounded-full text-sm">
+              <span
+                key={index}
+                className="px-3 py-1 bg-base-100 text-base-content rounded-full text-sm"
+              >
                 #{tag.trim()}
               </span>
             ))}
@@ -65,14 +94,15 @@ const PostDetails = ({ post, userId, onVote }) => {
           {/* Templates Section */}
           {post.templates?.length > 0 && (
             <div className="mt-6">
-              <h2 className="text-xl font-semibold text-base-primary mb-2">Associated Templates</h2>
+              <h2 className="text-xl font-semibold text-base-primary mb-2">
+                Associated Templates
+              </h2>
               <ul className="list-disc ml-6">
                 {post.templates.map((template) => (
-
                   <li
                     key={template.id}
                     className="text-secondary hover:underline cursor-pointer"
-                    onClick={() => handleTemplateClick(template.id)}
+                    onClick={() => handleTemplateClick(template)}
                   >
                     {template.title} (Language: {template.language})
                   </li>
