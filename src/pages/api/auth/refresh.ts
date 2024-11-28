@@ -34,7 +34,11 @@ export default async function handler(
       "Set-Cookie",
       `accessToken=${newAccessToken}; HttpOnly; Path=/; Max-Age=3600`,
     );
-    res.status(200).json({ accessToken: newAccessToken });
+    const email = user.email;
+    const role = user.role;
+    res
+      .status(200)
+      .json({ accessToken: newAccessToken, email: email, role: role });
   } catch (error) {
     res.status(401).json({ error: "Invalid or expired refresh token" });
   }

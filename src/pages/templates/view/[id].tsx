@@ -202,6 +202,17 @@ const ViewOnlyTemplatePage = () => {
           >
             Fork Template
           </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() =>
+              router.push({
+                pathname: "/blogs/create",
+                query: { templates: JSON.stringify([templateData.id]) },
+              })
+            }
+          >
+            Create Blog Post with Template
+          </button>
         </div>
       </div>
 

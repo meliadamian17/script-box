@@ -260,9 +260,7 @@ const TemplateEditorPage = () => {
               </div>
             )}
           </div>
-          <button className="btn btn-primary" onClick={saveTemplate} disabled={isRunning}>
-            Save Template
-          </button>
+
         </div>
 
         {/* Editable Description */}
@@ -291,6 +289,25 @@ const TemplateEditorPage = () => {
               </button>
             </div>
           )}
+
+          <div className="flex gap-8 mt-8">
+            <button className="btn btn-primary" onClick={saveTemplate} disabled={isRunning}>
+              Save Template
+            </button>
+            <button
+              className="btn btn-secondary"
+              onClick={() =>
+                router.push({
+                  pathname: "/blogs/create",
+                  query: { templates: JSON.stringify([templateData.id]) },
+                })
+              }
+            >
+              Create Blog Post with Template
+            </button>
+
+
+          </div>
         </div>
 
         {/* Editor Options */}

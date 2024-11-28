@@ -41,7 +41,7 @@ const HomePage = () => {
         </div>
       </div>
 
-      <Divider className="my-12" />
+      <Divider className="mb-12" />
       {/* Benefits Section */}
       <div className="bg-base-200 py-16">
         <div className="container mx-auto px-6 lg:px-20">

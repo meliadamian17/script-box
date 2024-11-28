@@ -28,6 +28,7 @@ const handler = async (req, res) => {
           createdAt: true,
           updatedAt: true,
           templates: true,
+          role: true,
         },
       });
 

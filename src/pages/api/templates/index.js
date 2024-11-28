@@ -18,6 +18,7 @@ const handler = async (req, res) => {
               firstName: true,
               lastName: true,
               profileImage: true,
+              email: true,
             },
           },
         },
@@ -37,6 +38,11 @@ const handler = async (req, res) => {
           { description: { contains: content } },
           { code: { contains: content } },
         ];
+      }
+
+      if (req.query.ids) {
+        const ids = req.query.ids.split(",").map((id) => parseInt(id, 10));
+        queryOptions.where.id = { in: ids };
       }
 
       if (ownedByUser === "true") {

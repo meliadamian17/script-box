@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
-export default function Signup() {
+export default function SignupAdmin() {
   const { signup } = useAuth();
   const [formData, setFormData] = useState({
     firstName: "",
@@ -10,7 +10,7 @@ export default function Signup() {
     email: "",
     password: "",
     profileImage: null as File | null,
-    role: "USER",
+    role: "ADMIN"
   });
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -39,12 +39,14 @@ export default function Signup() {
       data.append("lastName", formData.lastName);
       data.append("email", formData.email);
       data.append("password", formData.password);
+      data.append("role", "ADMIN")
 
       if (formData.profileImage) {
         data.append("profileImage", formData.profileImage);
       }
+      console.log(data)
 
-      await signup({ firstName: formData.firstName, lastName: formData.lastName, email: formData.email, password: formData.password, profileImage: formData.profileImage });
+      await signup({ firstName: formData.firstName, lastName: formData.lastName, email: formData.email, password: formData.password, profileImage: formData.profileImage, role: "ADMIN" });
     } catch (err: any) {
       setError(err.message);
     }
@@ -53,7 +55,7 @@ export default function Signup() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-base-200">
       <div className="w-full max-w-md p-8 space-y-4 bg-base-100 rounded shadow">
-        <h1 className="text-2xl font-bold">Signup</h1>
+        <h1 className="text-2xl font-bold">Super Cool Hidden Admin Signup Page</h1>
         {error && <p className="text-red-500">{error}</p>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="form-control">
@@ -142,4 +144,5 @@ export default function Signup() {
     </div>
   );
 }
+
 
