@@ -11,7 +11,7 @@ const sortOptions: Record<string, string> = {
 };
 
 const CommentsSection = ({ postId, userId }) => {
-  const [comments, setComments] = useState([]); // Initialize as an empty array
+  const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState("");
   const [sortBy, setSortBy] = useState(sortOptions["Recent"]);
   const { user } = useAuth();
@@ -86,12 +86,12 @@ const CommentsSection = ({ postId, userId }) => {
           }
           className="flex-1 border border-gray-300 bg-base-200 rounded-lg p-4 focus:ring focus:ring-blue-200"
           rows={3}
-          disabled={!user} // Disable textarea if not signed in
+          disabled={!user}
         />
         <button
           className="btn btn-primary"
           onClick={handleSubmitComment}
-          disabled={!user || commentText.trim() === ""} // Disable if not signed in or comment is empty
+          disabled={!user || commentText.trim() === ""}
         >
           Submit
         </button>

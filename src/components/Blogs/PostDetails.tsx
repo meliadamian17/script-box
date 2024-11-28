@@ -28,14 +28,14 @@ const PostDetails = ({ post, userId, onVote }) => {
   const handleTemplateClick = async (template) => {
     if (user) {
       if (user.id === template.userId) {
-        // User is the owner
+
         router.push(`/templates/${template.id}`);
       } else {
-        // User is not the owner
+
         router.push(`/templates/view/${template.id}`);
       }
     } else {
-      // User is not logged in
+
       router.push({
         pathname: `/code`,
         query: {
@@ -54,12 +54,12 @@ const PostDetails = ({ post, userId, onVote }) => {
     (rating) => rating.userId === userId
   )?.value;
 
-  // Function to handle edit button click
+
   const handleEdit = () => {
     router.push(`/blogs/edit/${post.id}`);
   };
 
-  // Function to handle delete
+
   const handleDelete = async () => {
     if (confirm("Are you sure you want to delete this post?")) {
       try {
@@ -77,7 +77,7 @@ const PostDetails = ({ post, userId, onVote }) => {
     }
   };
 
-  // Close dropdown when clicking outside
+
   useEffect(() => {
     const handleOutsideClick = (event) => {
       if (
@@ -96,7 +96,6 @@ const PostDetails = ({ post, userId, onVote }) => {
 
   return (
     <div className="bg-base-200 shadow-md rounded-lg p-8 mb-8 relative">
-      {/* Dropdown Menu */}
       {(user?.id === post.authorId || user?.role === "ADMIN") && (
         <div className="absolute top-4 right-4" ref={dropdownRef}>
           <button
@@ -186,7 +185,6 @@ const PostDetails = ({ post, userId, onVote }) => {
             ))}
           </div>
 
-          {/* Templates Section */}
           {post.templates?.length > 0 && (
             <div className="mt-6">
               <h2 className="text-xl font-semibold text-base-primary mb-2">

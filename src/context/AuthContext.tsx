@@ -1,4 +1,4 @@
-// context/AuthContext.tsx
+
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useRouter } from "next/router";
 
@@ -69,14 +69,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (res.ok) {
-        router.push("/login"); // Redirect to login after signup
+        router.push("/login");
       } else {
         const error = await res.json();
         throw new Error(error.message || "Signup failed");
       }
     } catch (error) {
       console.error("Signup error:", error);
-      throw error; // Ensure errors propagate to the UI
+      throw error;
     }
   };
 
@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Auto-login user if token is valid
+
     const initializeUser = async () => {
       try {
         const res = await fetch("/api/auth/refresh", { method: "POST" });
@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   if (loading) {
-    //TODO: CHANGE ALL LOADING TEXTS TO BE LOADING SPINNERS 
+
     <div className="flex justify-center items-center">
       <div className="loading loading-ring loading-lg"></div>
     </div>

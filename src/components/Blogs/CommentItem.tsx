@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "@/context/AuthContext";
-import ReportModal from "@/components/Blogs/ReportModal"; // Import ReportModal
+import ReportModal from "@/components/Blogs/ReportModal";
 
 type Vote = -1 | 1;
 
@@ -20,13 +20,13 @@ const CommentItem = ({
   const [replyText, setReplyText] = useState("");
   const [showReplyBox, setShowReplyBox] = useState(false);
 
-  // State variables for reporting
+
   const [reportingCommentId, setReportingCommentId] = useState<number | null>(null);
 
   const dropdownRef = useRef(null);
   const { user } = useAuth();
 
-  // Close dropdown when clicking outside
+
   useEffect(() => {
     const handleOutsideClick = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -68,11 +68,11 @@ const CommentItem = ({
       });
       if (response.ok) {
         const newReply = await response.json();
-        setReplies((prevReplies) => [...prevReplies, newReply]); // Add new reply to the state
+        setReplies((prevReplies) => [...prevReplies, newReply]);
         setReplyText("");
         setShowReplyBox(false);
         if (onUpdateReplyCount) {
-          onUpdateReplyCount(comment.id, 1); // Increment reply count for the parent
+          onUpdateReplyCount(comment.id, 1);
         }
         await fetchReplies();
       }
@@ -118,7 +118,7 @@ const CommentItem = ({
       if (response.ok) {
         onDelete();
         if (onUpdateReplyCount) {
-          onUpdateReplyCount(comment.id, -1); // Decrement reply count
+          onUpdateReplyCount(comment.id, -1);
         }
         await fetchReplies();
       }
@@ -127,7 +127,7 @@ const CommentItem = ({
     }
   };
 
-  // Function to hide/unhide comments (Admin functionality)
+
   const toggleHideComment = async (commentId: number, hide: boolean) => {
     try {
       const response = await fetch(`/api/comments/${commentId}/hide`, {
@@ -155,7 +155,7 @@ const CommentItem = ({
   const userRating = comment.ratings.find((rating) => rating.userId === userId)
     ?.value;
 
-  // Handle report submission
+
   const handleReport = async (reason: string) => {
     if (!reportingCommentId) return;
     try {
@@ -196,7 +196,6 @@ const CommentItem = ({
         </div>
       ) : (
         <>
-          {/* Indicate if the comment is hidden and cannot be edited */}
           {comment.hidden && comment.userId === userId && (
             <div className="text-red-500 font-bold mb-2">
               This comment has been hidden due to reports. You cannot edit it,
@@ -259,7 +258,6 @@ const CommentItem = ({
                   </li>
                 </>
               )}
-              {/* Add Report option for all users */}
               <li>
                 <button
                   className="w-full text-left px-4 py-2 text-red-500 btn"
@@ -272,7 +270,6 @@ const CommentItem = ({
                   Report
                 </button>
               </li>
-              {/* Admin can hide/unhide comments */}
               {user?.role === "ADMIN" && (
                 <li>
                   <button
@@ -297,7 +294,7 @@ const CommentItem = ({
           className={`${userRating === 1 ? "text-green-500" : "text-gray-500"
             } hover:text-green-500`}
           onClick={() => handleVote(1)}
-          disabled={!user} // Disable if user is not signed in
+          disabled={!user}
         >
           ▲
         </button>
@@ -306,7 +303,7 @@ const CommentItem = ({
           className={`${userRating === -1 ? "text-red-500" : "text-gray-500"
             } hover:text-red-500`}
           onClick={() => handleVote(-1)}
-          disabled={!user} // Disable if user is not signed in
+          disabled={!user}
         >
           ▼
         </button>
@@ -358,13 +355,12 @@ const CommentItem = ({
               userId={userId}
               onVote={fetchReplies}
               onDelete={fetchReplies}
-              onUpdateReplyCount={onUpdateReplyCount} // Pass fetchReplies recursively
+              onUpdateReplyCount={onUpdateReplyCount}
             />
           ))}
         </div>
       )}
 
-      {/* Report Modal */}
       <ReportModal
         isOpen={!!reportingCommentId}
         onClose={() => setReportingCommentId(null)}

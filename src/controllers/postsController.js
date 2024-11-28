@@ -51,7 +51,7 @@ export const updatePost = checkAuth(async (req, res) => {
       id: postId,
     },
     include: {
-      templates: true, // Include current templates for comparison
+      templates: true,
     },
   });
 
@@ -59,14 +59,12 @@ export const updatePost = checkAuth(async (req, res) => {
     return res.status(404).json({ message: "Post does not exist" });
   }
 
-  // Check if the user is the author or an admin
   if (post.authorId !== userId && userRole !== "ADMIN") {
     return res
       .status(403)
       .json({ message: "You are not authorized to perform this task." });
   }
 
-  // Process tags
   let tagsString = "";
   if (typeof tags === "string") {
     tagsString = tags;
@@ -77,12 +75,9 @@ export const updatePost = checkAuth(async (req, res) => {
     tagsString = "";
   }
 
-  // Process templates
   let templateUpdates = {};
 
   if (Array.isArray(templates)) {
-    // Assuming templates is an array of template IDs
-    // Get the current template IDs
     const currentTemplateIds = post.templates.map((t) => t.id);
 
     const templatesToConnect = templates

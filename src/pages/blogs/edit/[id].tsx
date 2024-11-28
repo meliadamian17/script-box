@@ -4,7 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 
 const EditPost = () => {
   const router = useRouter();
-  const { user } = useAuth(); // Get the current user
+  const { user } = useAuth();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -29,7 +29,7 @@ const EditPost = () => {
     const data = await response.json();
     if (response.ok) {
       setPost(data.post);
-      // Check if the user is authorized to edit the post
+
       if (user?.id !== data.post.authorId && user?.role !== "ADMIN") {
         alert("You are not authorized to edit this post.");
         router.push("/blogs");
@@ -41,7 +41,7 @@ const EditPost = () => {
       const tagsArray = data.post.tags.split(",").map((tag) => tag.trim());
       setTags(tagsArray);
 
-      // Set selected templates
+
       setSelectedTemplates(data.post.templates || []);
     } else {
       console.error("Failed to fetch post");
@@ -81,7 +81,7 @@ const EditPost = () => {
 
       await response.json();
 
-      // Redirect back to the posts page after successful update
+
       router.push("/blogs");
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred.");
@@ -144,7 +144,7 @@ const EditPost = () => {
     }
   }, [template]);
 
-  // Close suggestions when clicking outside
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (

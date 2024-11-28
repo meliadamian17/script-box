@@ -9,13 +9,13 @@ const ReportsPage = () => {
 
   useEffect(() => {
     if (!user) {
-      // Redirect to login if not authenticated
+
       router.push("/login");
       return;
     }
 
     if (user.role !== "ADMIN") {
-      // Redirect if not admin
+
       alert("You are not authorized to view this page.");
       router.push("/");
       return;
@@ -43,7 +43,7 @@ const ReportsPage = () => {
   };
 
   const handleViewComment = (postId, commentId) => {
-    // Navigate to the blog post and scroll to the comment
+
     router.push(`/blogs/${postId}#comment-${commentId}`);
   };
 
@@ -64,7 +64,7 @@ const ReportsPage = () => {
     }
   };
 
-  // Function to hide/unhide posts (Admin functionality)
+
   const toggleHidePost = async (postId: number, hide: boolean) => {
     try {
       const response = await fetch(`/api/posts/${postId}/hide`, {

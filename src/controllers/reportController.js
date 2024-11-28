@@ -82,18 +82,15 @@ export const getReports = checkAuth(async (req, res) => {
       },
     });
 
-    // Format the reports to include necessary details
     const formattedReports = reports.map((report) => {
       let blogPostLink = null;
 
       if (report.blogPost) {
-        // Report is on a blog post
         blogPostLink = {
           id: report.blogPost.id,
           title: report.blogPost.title,
         };
       } else if (report.comment && report.comment.blogPost) {
-        // Report is on a comment associated with a blog post
         blogPostLink = {
           id: report.comment.blogPost.id,
           title: report.comment.blogPost.title,

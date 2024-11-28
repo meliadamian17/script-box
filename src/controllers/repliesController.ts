@@ -60,7 +60,6 @@ export const getCommentReplies = optionalAuth(
         },
       });
 
-      // Format replies to include replyCount explicitly
       const formattedReplies = replies.map((reply) => ({
         ...reply,
         replyCount: reply._count.replies,
