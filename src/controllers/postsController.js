@@ -39,18 +39,19 @@ export const getPost = optionalAuth(async (req, res) => {
 });
 
 export const updatePost = checkAuth(async (req, res) => {
-  const { title, description, content, tags, templates, rating } = req.body;
+  const { title, description, content, tags, templates } = req.body;
   const { id } = req.query;
   const userId = req.user?.userId;
-  console.log(id);
-  const tagsArray = Array.isArray(tags) ? tags : [];
-  const uniqTags = [...new Set(tagsArray)];
+  const userRole = req.user?.role;
 
-  const tagsString = uniqTags.join(",");
+  const postId = parseInt(id);
 
   const post = await prisma.blogPost.findUnique({
     where: {
-      id: parseInt(id),
+      id: postId,
+    },
+    include: {
+      templates: true, // Include current templates for comparison
     },
   });
 
@@ -58,22 +59,54 @@ export const updatePost = checkAuth(async (req, res) => {
     return res.status(404).json({ message: "Post does not exist" });
   }
 
-  if (post.authorId !== userId) {
+  // Check if the user is the author or an admin
+  if (post.authorId !== userId && userRole !== "ADMIN") {
     return res
       .status(403)
       .json({ message: "You are not authorized to perform this task." });
   }
 
+  // Process tags
+  let tagsString = "";
+  if (typeof tags === "string") {
+    tagsString = tags;
+  } else if (Array.isArray(tags)) {
+    const uniqTags = [...new Set(tags)];
+    tagsString = uniqTags.join(",");
+  } else {
+    tagsString = "";
+  }
+
+  // Process templates
+  let templateUpdates = {};
+
+  if (Array.isArray(templates)) {
+    // Assuming templates is an array of template IDs
+    // Get the current template IDs
+    const currentTemplateIds = post.templates.map((t) => t.id);
+
+    const templatesToConnect = templates
+      .filter((id) => !currentTemplateIds.includes(id))
+      .map((id) => ({ id }));
+
+    const templatesToDisconnect = currentTemplateIds
+      .filter((id) => !templates.includes(id))
+      .map((id) => ({ id }));
+
+    templateUpdates = {
+      connect: templatesToConnect,
+      disconnect: templatesToDisconnect,
+    };
+  }
+
   await prisma.blogPost.update({
-    where: { id: parseInt(id) },
+    where: { id: postId },
     data: {
       title,
       description,
       content,
       tags: tagsString,
-      rating, // If rating needs to be 0, include it here
-      authorId: userId, // Assuming the user is logged in and `userId` is valid
-      templates, // Include the template if necessary
+      templates: templateUpdates,
     },
   });
 
