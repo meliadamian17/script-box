@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "@/context/AuthContext";
+import ReportModal from "@/components/Blogs/ReportModal"; // Import ReportModal
 
 type Vote = -1 | 1;
 
@@ -18,6 +19,9 @@ const CommentItem = ({
   const [replies, setReplies] = useState(comment.replies || []);
   const [replyText, setReplyText] = useState("");
   const [showReplyBox, setShowReplyBox] = useState(false);
+
+  // State variables for reporting
+  const [reportingCommentId, setReportingCommentId] = useState<number | null>(null);
 
   const dropdownRef = useRef(null);
   const { user } = useAuth();
@@ -151,6 +155,26 @@ const CommentItem = ({
   const userRating = comment.ratings.find((rating) => rating.userId === userId)
     ?.value;
 
+  // Handle report submission
+  const handleReport = async (reason: string) => {
+    if (!reportingCommentId) return;
+    try {
+      await fetch("/api/comments/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          commentId: reportingCommentId,
+          reason,
+          itemType: "COMMENT",
+        }),
+      });
+      setReportingCommentId(null);
+      alert("Comment reported successfully.");
+    } catch (error) {
+      console.error("Error reporting comment:", error);
+    }
+  };
+
   return (
     <div className="p-4 rounded-lg mb-4 relative bg-base-100">
       {isEditing ? (
@@ -190,71 +214,82 @@ const CommentItem = ({
       )}
 
       <div className="absolute top-4 right-4" ref={dropdownRef}>
-        {(comment.userId === userId || user?.role === "ADMIN") && (
-          <div className="relative">
-            <button
-              className="btn btn-ghost btn-circle"
-              onClick={(e) => {
-                e.stopPropagation();
-                setDropdownOpen(!dropdownOpen);
-              }}
+        <div className="relative">
+          <button
+            className="btn btn-ghost btn-circle"
+            onClick={(e) => {
+              e.stopPropagation();
+              setDropdownOpen(!dropdownOpen);
+            }}
+          >
+            <EllipsisVerticalIcon className="w-5 h-5" />
+          </button>
+          {dropdownOpen && (
+            <ul
+              className="absolute top-8 right-0 w-40 bg-base-200 border-xl rounded-xl shadow-lg z-10"
+              onClick={(e) => e.stopPropagation()}
             >
-              <EllipsisVerticalIcon className="w-5 h-5" />
-            </button>
-            {dropdownOpen && (
-              <ul
-                className="absolute top-8 right-0 w-40 bg-base-200 border-xl rounded-xl shadow-lg z-10"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {comment.userId === userId && (
-                  <>
-                    {comment.canEdit && (
-                      <li>
-                        <button
-                          className="w-full text-left px-4 py-2 btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setIsEditing(true);
-                            setDropdownOpen(false);
-                          }}
-                        >
-                          Edit
-                        </button>
-                      </li>
-                    )}
+              {comment.userId === userId && (
+                <>
+                  {comment.canEdit && (
                     <li>
                       <button
-                        className="w-full text-left px-4 py-2 text-red-500 btn"
+                        className="w-full text-left px-4 py-2 btn"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDelete();
+                          setIsEditing(true);
                           setDropdownOpen(false);
                         }}
                       >
-                        Delete
+                        Edit
                       </button>
                     </li>
-                  </>
-                )}
-                {/* Admin can hide/unhide comments */}
-                {user?.role === "ADMIN" && (
+                  )}
                   <li>
                     <button
-                      className="w-full text-left px-4 py-2 btn"
+                      className="w-full text-left px-4 py-2 text-red-500 btn"
                       onClick={(e) => {
                         e.stopPropagation();
-                        toggleHideComment(comment.id, !comment.hidden);
+                        handleDelete();
                         setDropdownOpen(false);
                       }}
                     >
-                      {comment.hidden ? "Unhide" : "Hide"}
+                      Delete
                     </button>
                   </li>
-                )}
-              </ul>
-            )}
-          </div>
-        )}
+                </>
+              )}
+              {/* Add Report option for all users */}
+              <li>
+                <button
+                  className="w-full text-left px-4 py-2 text-red-500 btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setReportingCommentId(comment.id);
+                    setDropdownOpen(false);
+                  }}
+                >
+                  Report
+                </button>
+              </li>
+              {/* Admin can hide/unhide comments */}
+              {user?.role === "ADMIN" && (
+                <li>
+                  <button
+                    className="w-full text-left px-4 py-2 btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleHideComment(comment.id, !comment.hidden);
+                      setDropdownOpen(false);
+                    }}
+                  >
+                    {comment.hidden ? "Unhide" : "Hide"}
+                  </button>
+                </li>
+              )}
+            </ul>
+          )}
+        </div>
       </div>
 
       <div className="flex items-center space-x-2">
@@ -328,6 +363,13 @@ const CommentItem = ({
           ))}
         </div>
       )}
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={!!reportingCommentId}
+        onClose={() => setReportingCommentId(null)}
+        onSubmit={handleReport}
+      />
     </div>
   );
 };
