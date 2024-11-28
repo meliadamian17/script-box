@@ -4,11 +4,17 @@ import { CodeBracketIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import Link from "next/link";
 import placeholder from "../../public/images/profile/default.jpg"
+import { useRouter } from "next/router";
+
+
+const adminNav: string = "/d769ae39832fabdf6955a8af44642070df64ab6e7744fcd678d0e7c270b3fefc/reports"
+
 const Navbar = () => {
   const { user, logout } = useAuth();
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter()
 
   useEffect(() => {
     const fetchProfileImage = async () => {
@@ -50,12 +56,29 @@ const Navbar = () => {
         </Link>
         {/* Navigation Links */}
         <div className="ml-6 flex space-x-4">
-          <Link href="/templates" className="btn btn-ghost btn-sm rounded-btn">
+          <h2
+            onClick={() => router.push("/templates")}
+            className="btn btn-ghost btn-sm rounded-btn"
+          >
             Templates
-          </Link>
-          <Link href="/blogs" className="btn btn-ghost btn-sm rounded-btn">
+          </h2>
+          <h2
+            className="btn btn-ghost btn-sm rounded-btn"
+            onClick={() => router.push(`/blogs`)}
+          >
             Blogs
-          </Link>
+          </h2>
+          {user?.role === "ADMIN" && (
+            <h2
+              className="btn btn-ghost btn-sm rounded-btn"
+              onClick={() => router.push(adminNav)}
+            >
+              Reports
+            </h2>
+          )
+
+          }
+
         </div>
       </div>
       <div className="flex-none">

@@ -31,29 +31,98 @@ export const reportItem = checkAuth(async (req, res) => {
 });
 
 export const getReports = checkAuth(async (req, res) => {
-  const userRole = req.user?.role;
-  const { postId, commentId } = req.query;
+  const userId = req.user?.userId;
+
+  const user = await prisma.user.findUnique({
+    where: {
+      id: parseInt(userId),
+    },
+    select: {
+      role: true,
+    },
+  });
+
+  const userRole = user.role;
 
   if (userRole === "ADMIN") {
-    if (postId) {
-      const reports = await prisma.report.findMany({
-        where: { blogPostId: parseInt(postId) },
-        include: { user: true },
-      });
+    const reports = await prisma.report.findMany({
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        blogPost: {
+          select: {
+            id: true,
+            title: true,
+            content: true,
+            hidden: true,
+          },
+        },
+        comment: {
+          select: {
+            id: true,
+            content: true,
+            hidden: true,
+            blogPost: {
+              select: {
+                id: true,
+                title: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
 
-      return res.status(200).json(reports);
-    } else if (commentId) {
-      const reports = await prisma.report.findMany({
-        where: { commentId: parseInt(commentId) },
-        include: { user: true },
-      });
+    // Format the reports to include necessary details
+    const formattedReports = reports.map((report) => {
+      let blogPostLink = null;
 
-      return res.status(200).json(reports);
-    } else {
-      return res
-        .status(400)
-        .json({ message: "Missing postId or commentId in query" });
-    }
+      if (report.blogPost) {
+        // Report is on a blog post
+        blogPostLink = {
+          id: report.blogPost.id,
+          title: report.blogPost.title,
+        };
+      } else if (report.comment && report.comment.blogPost) {
+        // Report is on a comment associated with a blog post
+        blogPostLink = {
+          id: report.comment.blogPost.id,
+          title: report.comment.blogPost.title,
+        };
+      }
+
+      return {
+        id: report.id,
+        reason: report.reason,
+        createdAt: report.createdAt,
+        user: report.user,
+        blogPost: blogPostLink,
+        comment: report.comment
+          ? {
+              id: report.comment.id,
+              content: report.comment.content,
+              hidden: report.comment.hidden,
+            }
+          : null,
+        postContent: report.blogPost
+          ? {
+              content: report.blogPost.content,
+              hidden: report.blogPost.hidden,
+            }
+          : null,
+      };
+    });
+
+    return res.status(200).json({ reports: formattedReports });
   } else {
     return res.status(403).json({ message: "Unauthorized access" });
   }
