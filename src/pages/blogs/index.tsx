@@ -68,12 +68,6 @@ export default function Posts() {
   };
 
   useEffect(() => {
-    console.log(
-      "useEffect triggered with sortBy:",
-      sortBy,
-      "and currentPage:",
-      currentPage
-    );
     fetchPosts("", sortBy, currentPage, pageSize);
   }, [sortBy, currentPage]);
 
@@ -83,7 +77,6 @@ export default function Posts() {
   };
 
   const handleSort = (newSort: string) => {
-    console.log("SORTING", newSort);
     if (newSort) {
       setSortBy(newSort);
       setCurrentPage(1);
@@ -209,90 +202,90 @@ export default function Posts() {
             className="relative flex p-6 bg-base-200 rounded-lg shadow-md hover:shadow-xl transition"
           >
             <div className="absolute top-4 right-4">
-              {(post.authorId === userId || user?.role === "ADMIN") && (
-                <div className="relative">
-                  <button
-                    className="btn btn-ghost btn-circle"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setMenuOpen((prev) => (prev === post.id ? null : post.id));
-                    }}
+              <div className="relative">
+                <button
+                  className="btn btn-ghost btn-circle"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpen((prev) => (prev === post.id ? null : post.id));
+                  }}
+                >
+                  <EllipsisVerticalIcon className="w-5 h-5" />
+                </button>
+                {menuOpen === post.id && (
+                  <ul
+                    ref={dropdownRef}
+                    className="absolute top-8 right-0 w-40 bg-base-200 border-xl rounded-xl shadow-lg z-10"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <EllipsisVerticalIcon className="w-5 h-5" />
-                  </button>
-                  {menuOpen === post.id && (
-                    <ul
-                      ref={dropdownRef}
-                      className="absolute top-8 right-0 w-40 bg-base-200 border-xl rounded-xl shadow-lg z-10"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {post.authorId === userId && (
-                        <>
-                          {post.canEdit && (
-                            <li>
-                              <button
-                                className="w-full text-left px-4 py-2 btn"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEdit(post.id);
-                                  setMenuOpen(null);
-                                }}
-                              >
-                                Edit
-                              </button>
-                            </li>
-                          )}
+                    {/* Options for the post author */}
+                    {post.authorId === userId && (
+                      <>
+                        {post.canEdit && (
                           <li>
                             <button
-                              className="w-full text-left px-4 py-2 text-red-500 btn"
+                              className="w-full text-left px-4 py-2 btn"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (
-                                  confirm(
-                                    "Are you sure you want to delete this post?"
-                                  )
-                                ) {
-                                  deletePost(post.id);
-                                }
+                                handleEdit(post.id);
                                 setMenuOpen(null);
                               }}
                             >
-                              Delete
+                              Edit
                             </button>
                           </li>
-                        </>
-                      )}
-                      {/* Admin can hide/unhide posts */}
-                      {user?.role === "ADMIN" && (
+                        )}
                         <li>
                           <button
-                            className="w-full text-left px-4 py-2 btn"
+                            className="w-full text-left px-4 py-2 text-red-500 btn"
                             onClick={(e) => {
                               e.stopPropagation();
-                              toggleHidePost(post.id, !post.hidden);
+                              if (
+                                confirm(
+                                  "Are you sure you want to delete this post?"
+                                )
+                              ) {
+                                deletePost(post.id);
+                              }
                               setMenuOpen(null);
                             }}
                           >
-                            {post.hidden ? "Unhide" : "Hide"}
+                            Delete
                           </button>
                         </li>
-                      )}
+                      </>
+                    )}
+                    {/* Admin can hide/unhide posts */}
+                    {user?.role === "ADMIN" && (
                       <li>
                         <button
-                          className="w-full text-left px-4 py-2 text-red-500 btn"
+                          className="w-full text-left px-4 py-2 btn"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setReportingPostId(post.id);
+                            toggleHidePost(post.id, !post.hidden);
                             setMenuOpen(null);
                           }}
                         >
-                          Report
+                          {post.hidden ? "Unhide" : "Hide"}
                         </button>
                       </li>
-                    </ul>
-                  )}
-                </div>
-              )}
+                    )}
+                    {/* Report option available to all users */}
+                    <li>
+                      <button
+                        className="w-full text-left px-4 py-2 text-red-500 btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setReportingPostId(post.id);
+                          setMenuOpen(null);
+                        }}
+                      >
+                        Report
+                      </button>
+                    </li>
+                  </ul>
+                )}
+              </div>
             </div>
 
             <div className="flex-shrink-0">
