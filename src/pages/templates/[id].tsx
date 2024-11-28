@@ -4,9 +4,11 @@ import CodeEditor, { helloWorldCodes } from "../../components/CodeEditor";
 import { SupportedLanguages } from "@/utils/templates/types";
 import TemplateSidebar from "@/components/TemplateSidebar";
 import Alert from "@/components/Alert";
+import { useAuth } from "@/context/AuthContext";
 
 const TemplateEditorPage = () => {
   const router = useRouter();
+  const { user } = useAuth()
   const { id } = router.query;
   const [preferences, setPreferences] = useState({
     defaultLanguage: "python",
@@ -376,6 +378,7 @@ const TemplateEditorPage = () => {
               enableVim={enableVim}
               relativeLineNumbers={relativeLineNumbers}
               readOnly={isRunning}
+              user={user}
             />
           </div>
 
