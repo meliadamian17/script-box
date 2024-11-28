@@ -24,6 +24,7 @@
     "@codemirror/lint": "^6.8.3",
     "@codemirror/state": "^6.4.1",
     "@codemirror/view": "^6.35.0",
+    "@faker-js/faker": "^9.2.0",
     "@headlessui/react": "^2.2.0",
     "@nextui-org/card": "^2.0.34",
     "@nextui-org/react": "^2.4.8",
@@ -61,10 +62,10 @@
     "openai": "^4.73.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-tagsinput": "^3.20.3",
     "recharts": "^2.13.3",
     "vscode-ws-jsonrpc": "^3.3.2",
-    "ws": "^8.18.0",
-    "react-tagsinput": "^3.20.3"
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@heroicons/react": "^2.1.5",
