@@ -90,7 +90,7 @@ model BlogPostRating {
 
   user       User     @relation(fields: [userId], references: [id])
   userId     Int
-  post       BlogPost @relation(fields: [postId], references: [id])
+  post       BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
   postId     Int
 
   @@unique([userId, postId]) 
@@ -107,11 +107,15 @@ model Comment {
   canEdit      Boolean        @default(true)
   user         User           @relation(fields: [userId], references: [id])
   userId       Int
-  blogPost     BlogPost?      @relation(fields: [blogPostId], references: [id])
+  blogPost     BlogPost?      @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
   blogPostId   Int?
   template     Template?      @relation("TemplateComments", fields: [templateId], references: [id])
   templateId   Int?
   
+  parent       Comment?       @relation("CommentReplies", fields: [parentId], references: [id])
+  parentId     Int?
+  replies      Comment[]      @relation("CommentReplies")
+
   report       Report?        @relation("CommentReport")
 
   ratings      CommentRating[] @relation("CommentRatings") 
@@ -124,7 +128,7 @@ model CommentRating {
 
   user      User     @relation("UserRatings", fields: [userId], references: [id])
   userId    Int
-  comment   Comment  @relation("CommentRatings", fields: [commentId], references: [id])
+  comment   Comment  @relation("CommentRatings", fields: [commentId], references: [id], onDelete: Cascade)
   commentId Int
 
   @@unique([userId, commentId])
@@ -137,9 +141,9 @@ model Report {
 
   user         User      @relation(fields: [userId], references: [id])
   userId       Int
-  blogPost     BlogPost? @relation(fields: [blogPostId], references: [id])
+  blogPost     BlogPost? @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
   blogPostId   Int?
-  comment      Comment?  @relation("CommentReport", fields: [commentId], references: [id])
+  comment      Comment?  @relation("CommentReport", fields: [commentId], references: [id], onDelete: Cascade)
   commentId    Int? @unique
 }
 

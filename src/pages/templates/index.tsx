@@ -124,9 +124,24 @@ const TemplatesPage = () => {
   };
 
   const handleViewTemplate = async (template: Template) => {
-    router.push(
-      `/templates/view/${template.id}?viewOnly=true`
-    )
+    if (user) {
+      router.push(
+        `/templates/view/${template.id}?viewOnly=true`
+      )
+    } else {
+      router.push({
+        pathname: `/code`,
+        query: {
+          id: template.id,
+          title: template.title,
+          description: template.description,
+          language: template.language,
+          code: template.code,
+          tags: template.tags,
+        },
+      });
+
+    }
   }
 
   const handleForkTemplate = async (template: Template) => {

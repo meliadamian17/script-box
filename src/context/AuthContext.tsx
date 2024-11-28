@@ -1,9 +1,11 @@
-// context/AuthContext.tsx
+
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useRouter } from "next/router";
 
 interface User {
   email: string;
+  role: string;
+  id: string;
 }
 
 interface SignupData {
@@ -12,6 +14,7 @@ interface SignupData {
   firstName: string;
   lastName: string;
   profileImage?: File | null;
+  role?: string;
 }
 
 interface AuthContextType {
@@ -36,8 +39,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (res.ok) {
-      const { accessToken } = await res.json();
-      setUser({ email });
+      const { msg, at, rt, role, id } = await res.json();
+      setUser({ email, role, id });
       router.push("/");
     } else {
       throw new Error("Invalid credentials");
@@ -52,6 +55,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       formData.append("firstName", data.firstName);
       formData.append("lastName", data.lastName);
 
+      if (data.role) {
+        formData.append("role", data.role)
+      }
+
       if (data.profileImage) {
         formData.append("profileImage", data.profileImage);
       }
@@ -62,14 +69,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (res.ok) {
-        router.push("/login"); // Redirect to login after signup
+        router.push("/login");
       } else {
         const error = await res.json();
         throw new Error(error.message || "Signup failed");
       }
     } catch (error) {
       console.error("Signup error:", error);
-      throw error; // Ensure errors propagate to the UI
+      throw error;
     }
   };
 
@@ -80,13 +87,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Auto-login user if token is valid
+
     const initializeUser = async () => {
       try {
         const res = await fetch("/api/auth/refresh", { method: "POST" });
         if (res.ok) {
           const data = await res.json();
-          setUser({ email: data.email });
+          setUser({ email: data.email, role: data.role });
         }
       } catch (error) {
         console.error("Auto-login failed:", error);
@@ -99,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   if (loading) {
-    //TODO: CHANGE ALL LOADING TEXTS TO BE LOADING SPINNERS 
+
     <div className="flex justify-center items-center">
       <div className="loading loading-ring loading-lg"></div>
     </div>
