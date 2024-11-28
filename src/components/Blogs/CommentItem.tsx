@@ -1,9 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import { EllipsisVerticalIcon } from "@heroicons/react/24/outline";
+import { useAuth } from "@/context/AuthContext";
 
 type Vote = -1 | 1;
 
-const CommentItem = ({ comment, userId, onVote, onDelete, onUpdateReplyCount }) => {
+const CommentItem = ({
+  comment,
+  userId,
+  onVote,
+  onDelete,
+  onUpdateReplyCount,
+}) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedContent, setEditedContent] = useState(comment.content);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -13,6 +20,7 @@ const CommentItem = ({ comment, userId, onVote, onDelete, onUpdateReplyCount }) 
   const [showReplyBox, setShowReplyBox] = useState(false);
 
   const dropdownRef = useRef(null);
+  const { user } = useAuth();
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -30,7 +38,9 @@ const CommentItem = ({ comment, userId, onVote, onDelete, onUpdateReplyCount }) 
 
   const fetchReplies = async () => {
     try {
-      const response = await fetch(`/api/comments/replies?commentID=${comment.id}`);
+      const response = await fetch(
+        `/api/comments/replies?commentID=${comment.id}`
+      );
       if (response.ok) {
         const data = await response.json();
         setReplies(data.replies);
@@ -60,8 +70,7 @@ const CommentItem = ({ comment, userId, onVote, onDelete, onUpdateReplyCount }) 
         if (onUpdateReplyCount) {
           onUpdateReplyCount(comment.id, 1); // Increment reply count for the parent
         }
-        await fetchReplies()
-
+        await fetchReplies();
       }
     } catch (error) {
       console.error("Error submitting reply:", error);
@@ -107,10 +116,28 @@ const CommentItem = ({ comment, userId, onVote, onDelete, onUpdateReplyCount }) 
         if (onUpdateReplyCount) {
           onUpdateReplyCount(comment.id, -1); // Decrement reply count
         }
-        await fetchReplies()
+        await fetchReplies();
       }
     } catch (error) {
       console.error("Error deleting comment:", error);
+    }
+  };
+
+  // Function to hide/unhide comments (Admin functionality)
+  const toggleHideComment = async (commentId: number, hide: boolean) => {
+    try {
+      const response = await fetch(`/api/comments/${commentId}/hide`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hidden: hide }),
+      });
+      if (response.ok) {
+        onVote();
+      } else {
+        console.error("Error hiding/unhiding comment");
+      }
+    } catch (error) {
+      console.error("Error hiding/unhiding comment:", error);
     }
   };
 
@@ -121,7 +148,8 @@ const CommentItem = ({ comment, userId, onVote, onDelete, onUpdateReplyCount }) 
     setShowReplies(!showReplies);
   };
 
-  const userRating = comment.ratings.find((rating) => rating.userId === userId)?.value;
+  const userRating = comment.ratings.find((rating) => rating.userId === userId)
+    ?.value;
 
   return (
     <div className="p-4 rounded-lg mb-4 relative bg-base-100">
@@ -144,16 +172,25 @@ const CommentItem = ({ comment, userId, onVote, onDelete, onUpdateReplyCount }) 
         </div>
       ) : (
         <>
+          {/* Indicate if the comment is hidden and cannot be edited */}
+          {comment.hidden && comment.userId === userId && (
+            <div className="text-red-500 font-bold mb-2">
+              This comment has been hidden due to reports. You cannot edit it,
+              but you may delete it.
+            </div>
+          )}
           <p className="text-base-content mb-2">{comment.content}</p>
           <p className="text-sm text-base-primary mb-4">
             By {comment.user.firstName} {comment.user.lastName} |{" "}
-            {new Date(comment.createdAt).toLocaleString(undefined, { timeZone: "EST" })}
+            {new Date(comment.createdAt).toLocaleString(undefined, {
+              timeZone: "EST",
+            })}
           </p>
         </>
       )}
 
       <div className="absolute top-4 right-4" ref={dropdownRef}>
-        {comment.userId === userId && (
+        {(comment.userId === userId || user?.role === "ADMIN") && (
           <div className="relative">
             <button
               className="btn btn-ghost btn-circle"
@@ -169,30 +206,51 @@ const CommentItem = ({ comment, userId, onVote, onDelete, onUpdateReplyCount }) 
                 className="absolute top-8 right-0 w-40 bg-base-200 border-xl rounded-xl shadow-lg z-10"
                 onClick={(e) => e.stopPropagation()}
               >
-                <li>
-                  <button
-                    className="w-full text-left px-4 py-2 btn "
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsEditing(true);
-                      setDropdownOpen(false);
-                    }}
-                  >
-                    Edit
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className="w-full text-left px-4 py-2 text-red-500 btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete();
-                      setDropdownOpen(false);
-                    }}
-                  >
-                    Delete
-                  </button>
-                </li>
+                {comment.userId === userId && (
+                  <>
+                    {comment.canEdit && (
+                      <li>
+                        <button
+                          className="w-full text-left px-4 py-2 btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setIsEditing(true);
+                            setDropdownOpen(false);
+                          }}
+                        >
+                          Edit
+                        </button>
+                      </li>
+                    )}
+                    <li>
+                      <button
+                        className="w-full text-left px-4 py-2 text-red-500 btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete();
+                          setDropdownOpen(false);
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </li>
+                  </>
+                )}
+                {/* Admin can hide/unhide comments */}
+                {user?.role === "ADMIN" && (
+                  <li>
+                    <button
+                      className="w-full text-left px-4 py-2 btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleHideComment(comment.id, !comment.hidden);
+                        setDropdownOpen(false);
+                      }}
+                    >
+                      {comment.hidden ? "Unhide" : "Hide"}
+                    </button>
+                  </li>
+                )}
               </ul>
             )}
           </div>
@@ -204,6 +262,7 @@ const CommentItem = ({ comment, userId, onVote, onDelete, onUpdateReplyCount }) 
           className={`${userRating === 1 ? "text-green-500" : "text-gray-500"
             } hover:text-green-500`}
           onClick={() => handleVote(1)}
+          disabled={!user} // Disable if user is not signed in
         >
           ▲
         </button>
@@ -212,6 +271,7 @@ const CommentItem = ({ comment, userId, onVote, onDelete, onUpdateReplyCount }) 
           className={`${userRating === -1 ? "text-red-500" : "text-gray-500"
             } hover:text-red-500`}
           onClick={() => handleVote(-1)}
+          disabled={!user} // Disable if user is not signed in
         >
           ▼
         </button>
@@ -220,12 +280,20 @@ const CommentItem = ({ comment, userId, onVote, onDelete, onUpdateReplyCount }) 
             className="text-secondary hover:underline ml-2"
             onClick={toggleReplies}
           >
-            {showReplies ? "Hide Replies" : `View Replies (${comment.replyCount})`}
+            {showReplies
+              ? "Hide Replies"
+              : `View Replies (${comment.replyCount})`}
           </button>
         )}
         <button
           className="text-secondary hover:underline ml-2"
-          onClick={() => setShowReplyBox(!showReplyBox)}
+          onClick={() => {
+            if (user) {
+              setShowReplyBox(!showReplyBox);
+            } else {
+              alert("You must be signed in to reply.");
+            }
+          }}
         >
           Reply
         </button>
@@ -240,10 +308,7 @@ const CommentItem = ({ comment, userId, onVote, onDelete, onUpdateReplyCount }) 
             className="flex-1 border border-gray-300 bg-base-200 rounded-lg p-4 focus:ring focus:ring-blue-200"
             rows={2}
           />
-          <button
-            className="btn btn-secondary"
-            onClick={handleReplySubmit}
-          >
+          <button className="btn btn-secondary" onClick={handleReplySubmit}>
             Reply
           </button>
         </div>

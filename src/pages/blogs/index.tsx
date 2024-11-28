@@ -1,127 +1,61 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/router";
-import ReportModal from "@/components/Blogs/ReportModal"
+import ReportModal from "@/components/Blogs/ReportModal";
 import SearchAndSort from "@/components/Blogs/SearchAndSort";
-
-interface BlogPost {
-  id: number;
-  title: string;
-  description: string;
-  content: string;
-  tags: string;
-  rating: number;
-  createdAt: Date;
-  updatedAt: Date;
-  hidden: boolean;
-  reported: boolean;
-  canEdit: boolean;
-
-  author: User;
-  authorId: number;
-  comments: Comment[];
-  reports: Report[];
-  templates: Template[];
-  ratings: BlogPostRating[];
-}
-interface User {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  profileImage?: string;
-  phoneNumber?: string;
-  role: string;
-  refreshToken?: string;
-  createdAt: Date;
-  updatedAt: Date;
-
-  templates: Template[];
-  blogPosts: BlogPost[];
-  comments: Comment[];
-  reports: Report[];
-  ratings: CommentRating[];
-  postRatings: BlogPostRating[];
-}
-
-interface Template {
-  id: number;
-  title: string;
-  description?: string;
-  code: string;
-  language: string;
-  tags: string;
-  createdAt: Date;
-  updatedAt: Date;
-
-  user: User;
-  userId: number;
-
-  forkedFrom?: Template;
-  forkedFromId?: number;
-  forks: Template[];
-
-  blogPosts: BlogPost[];
-  comments: Comment[];
-}
-interface CommentRating {
-  id: number;
-  value: number;
-  createdAt: Date;
-
-  user: User;
-  userId: number;
-
-  comment: Comment;
-  commentId: number;
-
-
-}
-interface BlogPostRating {
-  id: number;
-  value: number;
-  createdAt: Date;
-  updatedAt: Date;
-
-  user: User;
-  userId: number;
-
-  post: BlogPost;
-  postId: number;
-
-}
-
-const sortOptions = {
-  "Rating: High to Low": "desc",
-  "Rating: Low to High": "asc",
-  "Most Reported": "reports",
-};
+import { useAuth } from "@/context/AuthContext";
+import { EyeSlashIcon, EllipsisVerticalIcon } from "@heroicons/react/24/outline";
 
 export default function Posts() {
-  const [posts, setPosts] = useState([]);
-  const [userId, setUserId] = useState(null);
-  const [userRatings, setUserRatings] = useState({});
-  const [menuOpen, setMenuOpen] = useState(null);
-  const [reportingPostId, setReportingPostId] = useState(null);
-  const [sortBy, setSortBy] = useState("desc");
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [userRatings, setUserRatings] = useState<Record<number, number>>({});
+  const [menuOpen, setMenuOpen] = useState<number | null>(null);
+  const [reportingPostId, setReportingPostId] = useState<number | null>(null);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
-  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize] = useState<number>(10);
+  const [totalPages, setTotalPages] = useState<number>(1);
 
   const router = useRouter();
+  const { user } = useAuth();
 
-  const fetchPosts = async (searchTerm = "", sort = sortBy, page = currentPage, limit = pageSize) => {
+  // Memoize sortOptions
+  const sortOptions = useMemo(() => {
+    const options = {
+      "Rating: High to Low": "desc",
+      "Rating: Low to High": "asc",
+    };
+
+    if (user?.role === "ADMIN") {
+      options["Most Reported"] = "reports";
+    }
+    return options;
+  }, [user?.role]);
+
+  const defaultSortKey = "Rating: High to Low";
+  const defaultSortValue = sortOptions[defaultSortKey];
+  const [sortBy, setSortBy] = useState<string>(defaultSortValue);
+
+  const fetchPosts = async (
+    searchTerm = "",
+    sort = sortBy,
+    page = currentPage,
+    limit = pageSize
+  ) => {
     const response = await fetch(
-      `/api/posts/posts?title=${encodeURIComponent(searchTerm)}&sortBy=${sort}&page=${page}&limit=${limit}`
+      `/api/posts/posts?title=${encodeURIComponent(
+        searchTerm
+      )}&sortBy=${sort}&page=${page}&limit=${limit}`
     );
     const data = await response.json();
     setPosts(data.posts);
     setUserId(data.userId);
 
-    const ratings = {};
-    data.posts.forEach((post) => {
-      const userRating = post.ratings.find((rating) => rating.userId === data.userId);
+    const ratings: Record<number, number> = {};
+    data.posts.forEach((post: BlogPost) => {
+      const userRating = post.ratings.find(
+        (rating) => rating.userId === data.userId
+      );
       if (userRating) {
         ratings[post.id] = userRating.value;
       }
@@ -134,24 +68,35 @@ export default function Posts() {
   };
 
   useEffect(() => {
+    console.log(
+      "useEffect triggered with sortBy:",
+      sortBy,
+      "and currentPage:",
+      currentPage
+    );
     fetchPosts("", sortBy, currentPage, pageSize);
   }, [sortBy, currentPage]);
 
-  const handleSearch = (searchTerm) => {
+  const handleSearch = (searchTerm: string) => {
     setCurrentPage(1);
     fetchPosts(searchTerm, sortBy, 1, pageSize);
   };
 
-  const handleSort = (newSort) => {
-    setSortBy(newSort);
-    setCurrentPage(1);
+  const handleSort = (newSort: string) => {
+    console.log("SORTING", newSort);
+    if (newSort) {
+      setSortBy(newSort);
+      setCurrentPage(1);
+    } else {
+      console.warn("Invalid sort value received:", newSort);
+    }
   };
 
-  const handleEdit = (postId) => {
+  const handleEdit = (postId: number) => {
     router.push(`blogs/edit/${postId}`);
   };
 
-  const handlePostUpvote = async (postId) => {
+  const handlePostUpvote = async (postId: number) => {
     try {
       await fetch("/api/posts/rate", {
         method: "POST",
@@ -164,7 +109,7 @@ export default function Posts() {
     }
   };
 
-  const handlePostDownvote = async (postId) => {
+  const handlePostDownvote = async (postId: number) => {
     try {
       await fetch("/api/posts/rate", {
         method: "POST",
@@ -177,12 +122,12 @@ export default function Posts() {
     }
   };
 
-  const deletePost = async (id) => {
+  const deletePost = async (id: number) => {
     await fetch(`../api/posts/${id}`, { method: "DELETE" });
     fetchPosts();
   };
 
-  const handleReport = async (reason) => {
+  const handleReport = async (reason: string) => {
     if (!reportingPostId) return;
     try {
       await fetch("../api/posts/report", {
@@ -201,11 +146,51 @@ export default function Posts() {
     }
   };
 
+  // Function to hide/unhide posts (Admin functionality)
+  const toggleHidePost = async (postId: number, hide: boolean) => {
+    try {
+      const response = await fetch(`/api/posts/${postId}/hide`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hidden: hide }),
+      });
+      if (response.ok) {
+        fetchPosts();
+      } else {
+        console.error("Error hiding/unhiding post");
+      }
+    } catch (error) {
+      console.error("Error hiding/unhiding post:", error);
+    }
+  };
+
+  // Dropdown reference and click outside handler
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        setMenuOpen(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, []);
+
   return (
     <div id="blogs_page" className="p-8 bg-base-100 min-h-screen">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Blog Posts</h1>
-        <button onClick={() => router.push(`/blogs/create`)} className="btn btn-primary">
+        <button
+          onClick={() => router.push(`/blogs/create`)}
+          className="btn btn-primary"
+        >
           New Post
         </button>
       </div>
@@ -214,7 +199,7 @@ export default function Posts() {
         onSearch={handleSearch}
         onSort={handleSort}
         sortOptions={sortOptions}
-        defaultSort="Rating: High to Low"
+        defaultSort={defaultSortKey}
       />
 
       <div className="space-y-6">
@@ -224,38 +209,88 @@ export default function Posts() {
             className="relative flex p-6 bg-base-200 rounded-lg shadow-md hover:shadow-xl transition"
           >
             <div className="absolute top-4 right-4">
-              <button
-                className="btn btn-circle btn-sm"
-                onClick={() => setMenuOpen((prev) => (prev === post.id ? null : post.id))}
-              >
-                ⋮
-              </button>
-              {menuOpen === post.id && (
-                <div className="absolute right-0 mt-2 w-40 bg-white border rounded shadow-lg z-10">
-                  {post.authorId === userId && (
-                    <>
-                      <button
-                        className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                        onClick={() => handleEdit(post.id)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
-                        onClick={() =>
-                          confirm("Are you sure you want to delete this post?") && deletePost(post.id)
-                        }
-                      >
-                        Delete
-                      </button>
-                    </>
-                  )}
+              {(post.authorId === userId || user?.role === "ADMIN") && (
+                <div className="relative">
                   <button
-                    className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
-                    onClick={() => setReportingPostId(post.id)}
+                    className="btn btn-ghost btn-circle"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMenuOpen((prev) => (prev === post.id ? null : post.id));
+                    }}
                   >
-                    Report
+                    <EllipsisVerticalIcon className="w-5 h-5" />
                   </button>
+                  {menuOpen === post.id && (
+                    <ul
+                      ref={dropdownRef}
+                      className="absolute top-8 right-0 w-40 bg-base-200 border-xl rounded-xl shadow-lg z-10"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {post.authorId === userId && (
+                        <>
+                          {post.canEdit && (
+                            <li>
+                              <button
+                                className="w-full text-left px-4 py-2 btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEdit(post.id);
+                                  setMenuOpen(null);
+                                }}
+                              >
+                                Edit
+                              </button>
+                            </li>
+                          )}
+                          <li>
+                            <button
+                              className="w-full text-left px-4 py-2 text-red-500 btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (
+                                  confirm(
+                                    "Are you sure you want to delete this post?"
+                                  )
+                                ) {
+                                  deletePost(post.id);
+                                }
+                                setMenuOpen(null);
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </li>
+                        </>
+                      )}
+                      {/* Admin can hide/unhide posts */}
+                      {user?.role === "ADMIN" && (
+                        <li>
+                          <button
+                            className="w-full text-left px-4 py-2 btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleHidePost(post.id, !post.hidden);
+                              setMenuOpen(null);
+                            }}
+                          >
+                            {post.hidden ? "Unhide" : "Hide"}
+                          </button>
+                        </li>
+                      )}
+                      <li>
+                        <button
+                          className="w-full text-left px-4 py-2 text-red-500 btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setReportingPostId(post.id);
+                            setMenuOpen(null);
+                          }}
+                        >
+                          Report
+                        </button>
+                      </li>
+                    </ul>
+                  )}
                 </div>
               )}
             </div>
@@ -263,7 +298,9 @@ export default function Posts() {
             <div className="flex-shrink-0">
               <div className="flex flex-col items-center space-y-2">
                 <button
-                  className={`btn btn-sm ${userRatings[post.id] === 1 ? "btn-success" : "btn-outline btn-success"
+                  className={`btn btn-sm ${userRatings[post.id] === 1
+                      ? "btn-success"
+                      : "btn-outline btn-success"
                     }`}
                   onClick={() => handlePostUpvote(post.id)}
                 >
@@ -271,7 +308,9 @@ export default function Posts() {
                 </button>
                 <p className="font-semibold text-xl">{post.rating}</p>
                 <button
-                  className={`btn btn-sm ${userRatings[post.id] === -1 ? "btn-error" : "btn-outline btn-error"
+                  className={`btn btn-sm ${userRatings[post.id] === -1
+                      ? "btn-error"
+                      : "btn-outline btn-error"
                     }`}
                   onClick={() => handlePostDownvote(post.id)}
                 >
@@ -281,6 +320,12 @@ export default function Posts() {
             </div>
 
             <div className="flex-grow pl-6">
+              {/* Indicate if the post is hidden and cannot be edited */}
+              {post.hidden && post.authorId === userId && (
+                <div className="text-red-500 font-bold mb-2">
+                  This post has been hidden due to reports and cannot be edited.
+                </div>
+              )}
               <div className="flex items-center mb-4">
                 {post.author.profileImage && (
                   <img
@@ -295,6 +340,9 @@ export default function Posts() {
                     onClick={() => router.push(`blogs/${post.id}`)}
                   >
                     {post.title}
+                    {post.hidden && (
+                      <EyeSlashIcon className="w-5 h-5 ml-2 text-gray-500" />
+                    )}
                   </h2>
                   <p className="text-gray-600">{post.description}</p>
                 </div>
@@ -303,7 +351,10 @@ export default function Posts() {
               <div className="flex flex-wrap gap-2 mb-4">
                 {post.tags.length > 0 &&
                   post.tags.split(",").map((tag, index) => (
-                    <span key={index} className="badge badge-primary badge-outline text-sm">
+                    <span
+                      key={index}
+                      className="badge badge-primary badge-outline text-sm"
+                    >
                       {tag.trim()}
                     </span>
                   ))}
@@ -334,7 +385,9 @@ export default function Posts() {
         </span>
         <button
           className="btn btn-secondary ml-4"
-          onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
+          onClick={() =>
+            currentPage < totalPages && setCurrentPage(currentPage + 1)
+          }
           disabled={currentPage === totalPages}
         >
           Next
@@ -349,3 +402,4 @@ export default function Posts() {
     </div>
   );
 }
+

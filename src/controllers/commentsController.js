@@ -1,6 +1,6 @@
 import prisma from "../utils/db";
 import { paginate } from "../utils/pagination";
-import { checkAuth } from "../utils/middleware";
+import { checkAuth, optionalAuth } from "../utils/middleware";
 
 export const updateComment = checkAuth(async (req, res) => {
   const { content, commentID } = req.body;
@@ -61,7 +61,7 @@ export const deleteComment = checkAuth(async (req, res) => {
   res.status(204).end();
 });
 
-export const getComments = checkAuth(async (req, res) => {
+export const getComments = optionalAuth(async (req, res) => {
   const { sortBy, page, limit, postID } = req.query;
   const userId = req.user?.userId;
   const queryOptions = {

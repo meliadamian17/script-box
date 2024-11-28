@@ -1,8 +1,8 @@
 import prisma from "../utils/db";
 import { paginate } from "../utils/pagination";
-import { checkAuth } from "../utils/middleware";
+import { checkAuth, optionalAuth } from "../utils/middleware";
 
-export const getPost = checkAuth(async (req, res) => {
+export const getPost = optionalAuth(async (req, res) => {
   const { id } = req.query;
   const userId = req.user?.userId;
   const post = await prisma.blogPost.findUnique({
@@ -102,10 +102,28 @@ export const deletePost = checkAuth(async (req, res) => {
   return res.status(204).end();
 });
 
-export const getPosts = checkAuth(async (req, res) => {
+export const getPosts = optionalAuth(async (req, res) => {
   const { title, tags, content, page, limit, ownedByUser, sortBy } = req.query;
   const queryOptions = { where: {}, orderBy: {} };
   const userId = req.user?.userId;
+
+  let user = null;
+  if (userId) {
+    user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        id: true,
+        role: true,
+      },
+    });
+  }
+
+  let userRole = "USER";
+  if (user) {
+    userRole = user.role;
+  }
 
   if (title) {
     queryOptions.where.title = { contains: title };
@@ -127,16 +145,21 @@ export const getPosts = checkAuth(async (req, res) => {
     queryOptions.where.authorId = userId;
   }
 
-  queryOptions.where.OR = [
-    ...(queryOptions.where.OR || []),
-    { hidden: false },
-    { hidden: true, authorId: userId },
-  ];
+  if (userRole !== "ADMIN") {
+    queryOptions.where.AND = [
+      ...(queryOptions.where.AND || []),
+      {
+        OR: userId
+          ? [{ hidden: false }, { hidden: true, authorId: userId }]
+          : [{ hidden: false }],
+      },
+    ];
+  }
 
   if (sortBy) {
     console.log(req.user);
     if (sortBy === "reports") {
-      if (req.user?.role !== "ADMIN") {
+      if (user.role !== "ADMIN") {
         return res
           .status(403)
           .json({ message: "Only ADMIN can filter by reports." });

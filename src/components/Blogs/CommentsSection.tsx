@@ -1,24 +1,29 @@
 import React, { useState, useEffect } from "react";
 import CommentItem from "@/components/Blogs/CommentItem";
 import SearchAndSort from "./SearchAndSort";
+import { useAuth } from "@/context/AuthContext";
 
 const sortOptions: Record<string, string> = {
   "Rating: High to Low": "desc",
   "Rating: Low to High": "asc",
-  "Recent": "",
+  Recent: "",
   "Most Reported": "reports",
-}
+};
 
 const CommentsSection = ({ postId, userId }) => {
   const [comments, setComments] = useState([]); // Initialize as an empty array
   const [commentText, setCommentText] = useState("");
-  const [sortBy, setSortBy] = useState(sortOptions["Recent"])
+  const [sortBy, setSortBy] = useState(sortOptions["Recent"]);
+  const { user } = useAuth();
+
   useEffect(() => {
     fetchComments(sortBy);
   }, [postId, sortBy]);
 
   const fetchComments = async (sortBy = "") => {
-    const response = await fetch(`/api/comments/comments?postID=${postId}&sortBy=${sortBy}`);
+    const response = await fetch(
+      `/api/comments/comments?postID=${postId}&sortBy=${sortBy}`
+    );
     if (response.ok) {
       const data = await response.json();
       setComments(data.formattedComments || []);
@@ -28,6 +33,11 @@ const CommentsSection = ({ postId, userId }) => {
   };
 
   const handleSubmitComment = async () => {
+    if (!user) {
+      alert("You must be signed in to submit a comment.");
+      return;
+    }
+
     const response = await fetch(`/api/comments/comments`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -43,10 +53,16 @@ const CommentsSection = ({ postId, userId }) => {
     const updateNestedReplies = (commentsList) =>
       commentsList.map((comment) => {
         if (comment.id === commentId) {
-          return { ...comment, replyCount: (comment.replyCount || 0) + increment };
+          return {
+            ...comment,
+            replyCount: (comment.replyCount || 0) + increment,
+          };
         }
         if (comment.replies) {
-          return { ...comment, replies: updateNestedReplies(comment.replies) };
+          return {
+            ...comment,
+            replies: updateNestedReplies(comment.replies),
+          };
         }
         return comment;
       });
@@ -55,10 +71,8 @@ const CommentsSection = ({ postId, userId }) => {
   };
 
   const handleSort = (newSort: string) => {
-    setSortBy(newSort)
+    setSortBy(newSort);
   };
-
-
 
   return (
     <div className="bg-base-200 shadow-md rounded-lg p-8">
@@ -67,11 +81,18 @@ const CommentsSection = ({ postId, userId }) => {
         <textarea
           value={commentText}
           onChange={(e) => setCommentText(e.target.value)}
-          placeholder="Write a comment..."
+          placeholder={
+            user ? "Write a comment..." : "You must be signed in to comment."
+          }
           className="flex-1 border border-gray-300 bg-base-200 rounded-lg p-4 focus:ring focus:ring-blue-200"
           rows={3}
+          disabled={!user} // Disable textarea if not signed in
         />
-        <button className="btn btn-primary" onClick={handleSubmitComment}>
+        <button
+          className="btn btn-primary"
+          onClick={handleSubmitComment}
+          disabled={!user || commentText.trim() === ""} // Disable if not signed in or comment is empty
+        >
           Submit
         </button>
       </div>
@@ -92,7 +113,9 @@ const CommentsSection = ({ postId, userId }) => {
           />
         ))
       ) : (
-        <p className="text-gray-500">No comments yet. Be the first to comment!</p>
+        <p className="text-gray-500">
+          No comments yet. Be the first to comment!
+        </p>
       )}
     </div>
   );

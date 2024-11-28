@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import prisma from "../utils/db";
-import { checkAuth } from "../utils/middleware";
+import { checkAuth, optionalAuth } from "../utils/middleware";
 
-export const getCommentReplies = checkAuth(
+export const getCommentReplies = optionalAuth(
   async (req: NextApiRequest, res: NextApiResponse) => {
     const { commentID } = req.query;
     const userId = req.user?.userId;

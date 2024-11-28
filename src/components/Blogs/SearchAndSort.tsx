@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 interface SearchAndSortProps {
-  onSearch?: (searchTerm: string) => void; // Optional
+  onSearch?: (searchTerm: string) => void;
   onSort: (sortBy: string) => void;
-  sortOptions: Record<string, string>; // Map of human-readable names to values
-  defaultSort?: string; // Optional default sort key
+  sortOptions: Record<string, string>;
+  defaultSort?: string;
 }
 
 const SearchAndSort: React.FC<SearchAndSortProps> = ({
@@ -16,13 +16,6 @@ const SearchAndSort: React.FC<SearchAndSortProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSort, setSelectedSort] = useState(defaultSort);
 
-  useEffect(() => {
-    // Trigger default sort value on mount
-    if (defaultSort && sortOptions[defaultSort]) {
-      onSort(sortOptions[defaultSort]);
-    }
-  }, [defaultSort, sortOptions, onSort]);
-
   const handleSearch = () => {
     if (onSearch) {
       onSearch(searchTerm);
@@ -33,12 +26,11 @@ const SearchAndSort: React.FC<SearchAndSortProps> = ({
     const selectedName = event.target.value;
     setSelectedSort(selectedName);
     const sortBy = sortOptions[selectedName];
-    onSort(sortBy); // Call the sort handler
+    onSort(sortBy);
   };
 
   return (
     <div className="flex items-center space-x-4 mb-4">
-      {/* Conditionally render search input and button */}
       {onSearch && (
         <>
           <input
